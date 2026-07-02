@@ -115,6 +115,7 @@ async def on_shutdown(app):
 ###
 
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
 import rclpy
@@ -126,7 +127,10 @@ class Client(Node):
 
         self.current_image_topic = IMAGE_SUBSCRIBE_TOPIC_NAME
         self.image_subscriber = self.create_subscription(
-            Image, self.current_image_topic, self.update_latest_frame, 10
+            Image,
+            self.current_image_topic,
+            self.update_latest_frame,
+            qos_profile_sensor_data,
         )
         self.topic_subscriber = self.create_subscription(
             String,
@@ -156,7 +160,10 @@ class Client(Node):
         old_topic = self.current_image_topic
         self.destroy_subscription(self.image_subscriber)
         self.image_subscriber = self.create_subscription(
-            Image, new_topic, self.update_latest_frame, 10
+            Image,
+            new_topic,
+            self.update_latest_frame,
+            qos_profile_sensor_data,
         )
 
         self.current_image_topic = new_topic

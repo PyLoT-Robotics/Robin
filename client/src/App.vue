@@ -1,5 +1,6 @@
 <template>
   <main class="flex flex-row bg-zinc-950 w-dvw h-dvh">
+    <PwaCacheProgress />
     <div
       class="shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
       :class="controllerStatus.shown ? 'w-40' : 'w-0'"
@@ -101,6 +102,7 @@ import ViewTabButton from './components/viewTabButton.vue'
 
 import { views } from './views'
 import RosNoConnection from './components/rosNoConnection.vue'
+import PwaCacheProgress from './components/PwaCacheProgress.vue'
 
 const controllerStatus = reactive({
   available: false,

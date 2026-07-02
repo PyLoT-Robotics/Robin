@@ -52,6 +52,7 @@
         animation: boot-spin 0.8s linear infinite;
       }
       @keyframes boot-spin { to { transform: rotate(360deg); } }
+      .boot-detail { color: #a1a1aa; font-size: 13px; font-weight: 400; }
     </style>
   </head>
   <body>
@@ -59,8 +60,24 @@
       <div class="boot-screen" role="status" aria-live="polite">
         <div class="boot-spinner" aria-hidden="true"></div>
         <span>Loading Robin…</span>
+        <span id="boot-detail" class="boot-detail">Reading startup information…</span>
       </div>
     </div>
+    <script>
+      const detail = document.getElementById('boot-detail')
+      const startedAt = performance.now()
+      const source = !navigator.onLine
+        ? 'Offline: loading the app core from the PWA cache'
+        : navigator.serviceWorker?.controller
+          ? 'Installed: loading the app core from the PWA cache'
+          : 'First launch: downloading the app core'
+      const updateBootDetail = () => {
+        const elapsed = ((performance.now() - startedAt) / 1000).toFixed(1)
+        if (detail) detail.textContent = `${source} · ${elapsed}s elapsed`
+      }
+      updateBootDetail()
+      setInterval(updateBootDetail, 250)
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

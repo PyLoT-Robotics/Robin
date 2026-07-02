@@ -35,16 +35,14 @@ export default defineConfig({
     vue(),
     tailwindcss(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
-      workbox: {
-        cleanupOutdatedCaches: true,
-        clientsClaim: true,
-        skipWaiting: true,
-        navigateFallback: '/index.html',
-      },
+      injectRegister: false,
       devOptions: {
         enabled: true,
+        type: 'module',
       },
       manifest: {
         id: '/',

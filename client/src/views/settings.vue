@@ -47,7 +47,7 @@ import {
   type Topic,
 } from '@/api/ros'
 import { useTopicsList } from '@/hooks/useTopicsList'
-import { ros } from '@/plugins/ros'
+import { ros, status } from '@/plugins/ros'
 
 const cameraTopicStorage = useLocalStorage('CameraTopic')
 const logTopicStorage = useLocalStorage('LogTopic')
@@ -98,9 +98,9 @@ const rosbridgeURL = buildRosWebSocketURL()
 const videoPublisherURL = buildVideoPublisherBaseURL()
 
 watch(
-  cameraTopic,
-  (value) => {
-    publishCameraTopic(value)
+  [cameraTopic, status],
+  ([value, connectionStatus]) => {
+    if (connectionStatus === 'connected') publishCameraTopic(value)
   },
   { immediate: true },
 )

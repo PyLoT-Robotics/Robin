@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col overflow-hidden w-full h-full">
+  <div class="relative flex flex-col overflow-hidden w-full h-full bg-black">
     <video
       ref="remoteVideo"
       autoplay
@@ -8,6 +8,22 @@
       preload="none"
       class="grow object-contain min-h-0"
     />
+    <div
+      v-if="connectionState !== 'playing'"
+      class="absolute inset-0 grid place-content-center bg-black/90 p-6 text-center text-zinc-200"
+    >
+      <div class="max-w-lg space-y-3">
+        <p class="text-lg">{{ connectionMessage }}</p>
+        <p class="break-all font-mono text-xs text-zinc-400">{{ diagnosticDetail }}</p>
+        <button
+          v-if="connectionState === 'error'"
+          class="rounded border border-zinc-600 px-4 py-2 hover:bg-zinc-800"
+          @click="startConnection"
+        >
+          Retry video connection
+        </button>
+      </div>
+    </div>
     <div
       class="px-3 py-1 text-sm font-mono text-center border-b border-border"
       :class="isFrameStale ? 'text-red-400' : 'text-zinc-100'"
@@ -27,6 +43,16 @@ const incomingStream = ref<MediaStream | null>(null)
 const lastFrameUpdatedAt = ref<Date | null>(null)
 const nowMs = ref(Date.now())
 const peerConnection = ref<RTCPeerConnection | null>(null)
+const connectionState = ref<'signaling' | 'ice' | 'waiting' | 'playing' | 'error'>('signaling')
+const diagnosticDetail = ref('Preparing WebRTC receiver…')
+
+const connectionMessage = computed(() => ({
+  signaling: 'Contacting the video publisher…',
+  ice: 'Discovering the network route…',
+  waiting: 'Connected; waiting for camera frames…',
+  playing: 'Video is playing',
+  error: 'Video connection failed',
+})[connectionState.value])
 
 let nowTimer: ReturnType<typeof setInterval> | null = null
 let inboundStatsTimer: ReturnType<typeof setInterval> | null = null
@@ -104,16 +130,37 @@ async function pollInboundFrameStats() {
     if (maxFramesDecoded > lastDecodedFrames) {
       lastDecodedFrames = maxFramesDecoded
       lastFrameUpdatedAt.value = new Date()
+      connectionState.value = 'playing'
+      diagnosticDetail.value = `Receiving decoded video frames over ${pc.connectionState}.`
     }
   } finally {
     statsPolling = false
   }
 }
 
-onMounted(() => {
+function waitForIceGatheringComplete(pc: RTCPeerConnection) {
+  if (pc.iceGatheringState === 'complete') return Promise.resolve()
+  return new Promise<void>((resolve) => {
+    const handleStateChange = () => {
+      if (pc.iceGatheringState === 'complete') {
+        pc.removeEventListener('icegatheringstatechange', handleStateChange)
+        resolve()
+      }
+    }
+    pc.addEventListener('icegatheringstatechange', handleStateChange)
+  })
+}
+
+async function startConnection() {
+  peerConnection.value?.close()
   const pc = new RTCPeerConnection()
   const videoPublisherOfferURL = `${buildVideoPublisherBaseURL()}/offer`
   peerConnection.value = pc
+  incomingStream.value = null
+  lastFrameUpdatedAt.value = null
+  lastDecodedFrames = -1
+  connectionState.value = 'signaling'
+  diagnosticDetail.value = `POST ${videoPublisherOfferURL}`
 
   nowTimer = setInterval(() => {
     nowMs.value = Date.now()
@@ -126,15 +173,27 @@ onMounted(() => {
   pc.addTransceiver('video', { direction: 'recvonly' })
 
   pc.ontrack = (event) => {
-    incomingStream.value = event.streams[0] ?? null
+    incomingStream.value = event.streams[0] ?? new MediaStream([event.track])
+    connectionState.value = 'waiting'
+    diagnosticDetail.value = `Received ${event.track.kind} track; waiting for decoded frames.`
   }
 
-  async function negotiate() {
+  pc.onconnectionstatechange = () => {
+    diagnosticDetail.value = `WebRTC connection: ${pc.connectionState}; ICE: ${pc.iceConnectionState}`
+    if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+      connectionState.value = 'error'
+    }
+  }
+
+  try {
     const offer = await pc.createOffer({
       offerToReceiveVideo: true,
       offerToReceiveAudio: false,
     })
     await pc.setLocalDescription(offer)
+    connectionState.value = 'ice'
+    diagnosticDetail.value = 'Waiting for ICE candidate gathering to complete.'
+    await waitForIceGatheringComplete(pc)
 
     if (!pc.localDescription) throw new Error('Local description is null')
 
@@ -150,14 +209,23 @@ onMounted(() => {
     })
 
     if (!response.ok) {
-      throw new Error('シグナリングサーバーからのレスポンスが不正です')
+      const responseText = await response.text()
+      throw new Error(`Signaling returned HTTP ${response.status}: ${responseText.slice(0, 200)}`)
     }
 
     const answer = await response.json()
     await pc.setRemoteDescription(new RTCSessionDescription(answer))
+    connectionState.value = 'waiting'
+    diagnosticDetail.value = 'WebRTC answer accepted; waiting for the first camera frame.'
+  } catch (error) {
+    connectionState.value = 'error'
+    diagnosticDetail.value = error instanceof Error ? error.message : String(error)
+    console.error('WebRTC negotiation failed', error)
   }
+}
 
-  negotiate()
+onMounted(() => {
+  void startConnection()
 })
 
 onUnmounted(() => {

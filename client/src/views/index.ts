@@ -1,9 +1,10 @@
-import type { Component } from "vue"
-import ArmController from "./armController.vue"
-import LiveVideo from "./live_video.vue"
-import Log from "./log.vue"
-import Map from "./map.vue"
-import settings from "./settings.vue"
+import { defineAsyncComponent, type Component } from 'vue'
+
+const ArmController = defineAsyncComponent(() => import('./armController.vue'))
+const LiveVideo = defineAsyncComponent(() => import('./live_video.vue'))
+const Log = defineAsyncComponent(() => import('./log.vue'))
+const Map = defineAsyncComponent(() => import('./map.vue'))
+const Settings = defineAsyncComponent(() => import('./settings.vue'))
 
 type ViewDefinition = {
   icon: string
@@ -29,6 +30,6 @@ export const views = {
   },
   settings: {
     icon: 'bi:gear',
-    component: settings,
+    component: Settings,
   },
 } as const satisfies Record<string, ViewDefinition>

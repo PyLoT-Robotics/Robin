@@ -36,15 +36,30 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'auto',
+      workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+        navigateFallback: '/index.html',
+      },
       devOptions: {
         enabled: true,
       },
       manifest: {
+        id: '/',
         name: 'Robin',
         short_name: 'Robin',
+        description: 'PyLoT Robotics robot controller and debugging client.',
+        start_url: '/',
+        scope: '/',
         theme_color: '#09090b',
         background_color: '#09090b',
         display: 'standalone',
+        display_override: ['window-controls-overlay', 'standalone'],
+        orientation: 'any',
+        categories: ['utilities'],
+        prefer_related_applications: false,
         icons: [
           {
             src: 'pwa-64x64.png',

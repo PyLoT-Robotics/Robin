@@ -1,9 +1,7 @@
-import { getLocalStorageItem } from '@/hooks/useLocalStorage'
 import * as RosLib from 'roslib'
 import type { Action, Ros, Topic } from 'roslib'
 import { ref } from 'vue'
 
-const connectionHostStorageKey = 'WebSocketURL'
 const rosBridgePath = '/rosbridge'
 const videoPublisherPath = '/video_publisher'
 const rosBridgeProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'

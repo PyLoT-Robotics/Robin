@@ -4,8 +4,8 @@
     <div class="flex flex-col gap-1 py-2 px-4 border-b border-border">
       <p class="text-xs text-zinc-400">
         X : <span class="text-red-400">{{ position.x.toFixed(3) }}</span>
-        Y : <span class="ml-3 text-green-400">{{ (-position.z).toFixed(3) }}</span>
-        Z : <span class="ml-3 text-blue-400">{{ (-position.y).toFixed(3) }}</span>
+        Y : <span class="ml-3 text-green-400">{{ position.y.toFixed(3) }}</span>
+        Z : <span class="ml-3 text-blue-400">{{ position.z.toFixed(3) }}</span>
       </p>
       <p class="text-xs text-zinc-500">
         Orientation:
@@ -97,7 +97,7 @@ let zArrow: ThreeArrowLike | null = null
 const ORIGIN = new THREE.Vector3(0, 0, 0)
 const MIN_LENGTH = 0.02
 const SCALE = 3
-const BASE_CAMERA_POSITION = new THREE.Vector3(0.001, 3, 0)
+const BASE_CAMERA_POSITION = new THREE.Vector3(0, 3, 0)
 const Z_AXIS = new THREE.Vector3(0, 0, 1)
 const WORLD_UP = new THREE.Vector3(0, 0, 1)
 const DEVICE_TO_WORLD_QUATERNION = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5)) as unknown as ThreeQuaternionLike
@@ -128,9 +128,9 @@ function renderScene(): void {
 }
 
 function applyPositionToArrows(): void {
-  updateArrow(xArrow, 'x', position.x)
-  updateArrow(yArrow, 'y', -position.z)
-  updateArrow(zArrow, 'z', -position.y)
+  updateArrow(xArrow, 'z', position.x)
+  updateArrow(yArrow, 'x', position.y)
+  updateArrow(zArrow, 'y', position.z)
   renderScene()
 }
 
@@ -228,16 +228,13 @@ function setupThree(): void {
   directionalLight.position.set(2, 3, 2)
 
   const grid = new THREE.GridHelper(4, 8, '#27272a', '#18181b')
-  const axes = new THREE.AxesHelper(1.1)
-
-  xArrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), ORIGIN as any, MIN_LENGTH, '#ef4444', 0.15, 0.08) as unknown as ThreeArrowLike
-  yArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), ORIGIN as any, MIN_LENGTH, '#22c55e', 0.15, 0.08) as unknown as ThreeArrowLike
-  zArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), ORIGIN as any, MIN_LENGTH, '#3b82f6', 0.15, 0.08) as unknown as ThreeArrowLike
+  xArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), ORIGIN as any, MIN_LENGTH, '#ef4444', 0.15, 0.08) as unknown as ThreeArrowLike
+  yArrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), ORIGIN as any, MIN_LENGTH, '#22c55e', 0.15, 0.08) as unknown as ThreeArrowLike
+  zArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), ORIGIN as any, MIN_LENGTH, '#3b82f6', 0.15, 0.08) as unknown as ThreeArrowLike
 
   scene.add(ambientLight)
   scene.add(directionalLight)
   scene.add(grid)
-  scene.add(axes)
   scene.add(xArrow)
   scene.add(yArrow)
   scene.add(zArrow)

@@ -24,6 +24,26 @@
       </select>
     </div>
 
+    <div class="flex flex-col gap-2 font-mono">
+      <div class="flex items-center justify-between px-2 text-lg">
+        <label for="webrtc-video-priority">Video Priority</label>
+        <span class="text-sm text-zinc-400">{{ videoPriorityLabel }}</span>
+      </div>
+      <input
+        id="webrtc-video-priority"
+        v-model="videoPriority"
+        type="range"
+        min="0"
+        max="100"
+        step="25"
+        class="mx-2 accent-orange-500"
+      >
+      <div class="flex justify-between px-2 text-sm text-zinc-400">
+        <span>Lower latency</span>
+        <span>Higher quality</span>
+      </div>
+    </div>
+
     <div class="flex flex-col gap-1 font-mono">
       <p class="px-2 text-lg">Connection Endpoint</p>
       <div class="bg-zinc-900 text-zinc-200 px-2 py-1 border-y border-border">
@@ -51,6 +71,7 @@ import { ros, status } from '@/plugins/ros'
 
 const cameraTopicStorage = useLocalStorage('CameraTopic')
 const logTopicStorage = useLocalStorage('LogTopic')
+const videoPriorityStorage = useLocalStorage('WebRTCVideoPriority')
 const videoPublisherSubscribeTopicName = '/robin/video_publisher_subscribe_topic'
 
 const { topicsList } = useTopicsList(ros)
@@ -92,6 +113,19 @@ const logTopic = computed({
   set: (value: string) => {
     logTopicStorage.value = value
   },
+})
+
+const videoPriority = computed({
+  get: () => Number(videoPriorityStorage.value || 0),
+  set: (value: number) => {
+    videoPriorityStorage.value = String(value)
+  },
+})
+
+const videoPriorityLabel = computed(() => {
+  if (videoPriority.value <= 25) return 'Latency'
+  if (videoPriority.value >= 75) return 'Quality'
+  return 'Balanced'
 })
 
 const rosbridgeURL = buildRosWebSocketURL()

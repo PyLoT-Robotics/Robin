@@ -6,6 +6,7 @@
       :class="controllerStatus.shown ? 'w-40' : 'w-0'"
     >
       <ControllerLeft
+        v-if="controllerStatus.shown"
         class="transition-transform duration-300 ease-in-out"
         :class="controllerStatus.shown ? 'translate-x-0' : '-translate-x-full'"
         v-model:leftStick="control.leftStick"
@@ -18,7 +19,7 @@
       />
     </div>
     <div class="grow min-w-0 overflow-hidden flex flex-col">
-      <RosNoConnection/>
+      <RosNoConnection v-if="rosFeaturesActive" />
       <div
         class="shrink-0 overflow-hidden transition-[height] duration-300 ease-in-out"
         :class="isMessageShown ? 'h-12' : 'h-0'"
@@ -27,7 +28,7 @@
           class="border-b border-border h-12 transition-transform duration-300 ease-in-out"
           :class="isMessageShown ? 'translate-y-0' : '-translate-y-full'"
         >
-          <Message/>
+          <Message v-if="isMessageShown" />
         </div>
       </div>
       <div
@@ -77,6 +78,7 @@
       :class="controllerStatus.shown ? 'w-40' : 'w-0'"
     >
       <ControllerRight
+        v-if="controllerStatus.shown"
         class="transition-transform duration-300 ease-in-out"
         :class="controllerStatus.shown ? 'translate-x-0' : 'translate-x-full'"
         v-model:rightStick="control.rightStick"
@@ -91,24 +93,23 @@
   </main>
 </template>
 <script setup lang="ts">
-import ControllerLeft from '@/components/controller/controller_left.vue'
-import ControllerRight from '@/components/controller/controller_right.vue'
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
-import { ros } from '@/plugins/ros'
-import Message from './components/message.vue'
-import { createControllerTopicInterval } from './utils/createControllerTopicInterval'
+import { computed, defineAsyncComponent, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import type { Control } from './model/control'
 import ViewTabButton from './components/viewTabButton.vue'
 
 import { views } from './views'
-import RosNoConnection from './components/rosNoConnection.vue'
 import PwaCacheProgress from './components/PwaCacheProgress.vue'
+
+const ControllerLeft = defineAsyncComponent(() => import('@/components/controller/controller_left.vue'))
+const ControllerRight = defineAsyncComponent(() => import('@/components/controller/controller_right.vue'))
+const Message = defineAsyncComponent(() => import('./components/message.vue'))
+const RosNoConnection = defineAsyncComponent(() => import('./components/rosNoConnection.vue'))
 
 const controllerStatus = reactive({
   available: false,
   shown: false,
 })
-const isMessageShown = ref(true)
+const isMessageShown = ref(false)
 const shownViews = reactive<Record<keyof typeof views, boolean>>(
   Object.keys(views).reduce((acc, key) => {
     acc[key as keyof typeof views] = false
@@ -125,6 +126,13 @@ const isAllUINotShown = computed(() => {
     }
   }
   return tmp
+})
+
+const rosFeaturesActive = computed(() => {
+  if (isMessageShown.value || controllerStatus.shown) return true
+  return Object.entries(shownViews).some(([key, shown]) => (
+    shown && views[key as keyof typeof views].usesRos
+  ))
 })
 
 const isPortrait = ref(false)
@@ -176,15 +184,22 @@ const control = reactive<Control>({
 
 
 let joyInterval: ReturnType<typeof setTimeout> | null = null
+let controllerLoadGeneration = 0
 const joyTopicTPS = 30
 
 watch(
   () => controllerStatus.shown,
   (shown) => {
-    console.log('hi!')
+    const generation = ++controllerLoadGeneration
     if (shown) {
-      joyInterval = createControllerTopicInterval(ros, joyTopicTPS, control)
-      console.log('startjoyinterval')
+      void Promise.all([
+        import('@/plugins/ros'),
+        import('./utils/createControllerTopicInterval'),
+      ]).then(([{ ros }, { createControllerTopicInterval }]) => {
+        if (controllerStatus.shown && generation === controllerLoadGeneration) {
+          joyInterval = createControllerTopicInterval(ros, joyTopicTPS, control)
+        }
+      })
     } else {
       if (joyInterval) {
         clearInterval(joyInterval)

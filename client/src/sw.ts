@@ -5,7 +5,14 @@ declare const self: ServiceWorkerGlobalScope & {
 }
 
 const manifest = self.__WB_MANIFEST
-const urls = manifest.map(({ url }) => new URL(url, self.location.origin).href)
+const shellEntries = manifest.filter(({ url }) => (
+  url === 'index.html' ||
+  url === 'manifest.webmanifest' ||
+  /^assets\/index-[^/]+\.(js|css)$/.test(url) ||
+  /^assets\/(reactivity|runtime-core)\.esm-bundler-[^/]+\.js$/.test(url) ||
+  /^(favicon\.ico|apple-touch-icon-180x180\.png|pwa-(64x64|192x192|512x512)\.png|maskable-icon-512x512\.png)$/.test(url)
+))
+const urls = shellEntries.map(({ url }) => new URL(url, self.location.origin).href)
 const manifestKey = manifest.map(({ url, revision }) => `${url}:${revision ?? ''}`).join('|')
 let manifestHash = 0
 for (const character of manifestKey) {
@@ -20,11 +27,18 @@ async function reportProgress(completed: number, total: number, file: string) {
   }
 }
 
+async function reportDownload(state: 'started' | 'finished' | 'failed', file: string) {
+  const clients = await self.clients.matchAll({ includeUncontrolled: true })
+  for (const client of clients) {
+    client.postMessage({ type: 'DEFERRED_DOWNLOAD', state, file })
+  }
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME)
     let completed = 0
-    await reportProgress(0, urls.length, 'Starting offline cache…')
+    await reportProgress(0, urls.length, 'Downloading minimum app shell…')
 
     await Promise.all(urls.map(async (url) => {
       const response = await fetch(url, { cache: 'reload' })
@@ -59,11 +73,35 @@ self.addEventListener('fetch', (event) => {
     if (cached) return cached
 
     try {
-      return await fetch(event.request)
+      const file = new URL(event.request.url).pathname
+      const shouldCache = ['script', 'style', 'image', 'font', 'worker'].includes(
+        event.request.destination,
+      )
+      if (shouldCache) await reportDownload('started', file)
+      const response = await fetch(event.request)
+      if (
+        shouldCache &&
+        response.ok &&
+        new URL(event.request.url).origin === self.location.origin
+      ) {
+        await cache.put(event.request, response.clone())
+      }
+      if (shouldCache) await reportDownload('finished', file)
+      return response
     } catch (error) {
+      if (['script', 'style', 'image', 'font', 'worker'].includes(event.request.destination)) {
+        await reportDownload('failed', new URL(event.request.url).pathname)
+      }
       if (event.request.mode === 'navigate') {
-        const fallback = await cache.match(new URL('/index.html', self.location.origin).href)
+        const fallback = await cache.match(new URL('index.html', self.registration.scope).href)
         if (fallback) return fallback
+        return new Response(
+          '<!doctype html><title>Robin is offline</title><h1>Robin is offline</h1><p>Reconnect to the client server, then reload this page.</p>',
+          {
+            status: 503,
+            headers: { 'Content-Type': 'text/html; charset=utf-8' },
+          },
+        )
       }
       throw error
     }

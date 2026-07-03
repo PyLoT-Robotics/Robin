@@ -26,10 +26,24 @@ const httpsOptions = (() => {
   }
 })()
 
+const proxy = {
+  '/rosbridge': {
+    target: 'ws://localhost:9090',
+    ws: true,
+    rewrite: (path: string) => path.replace(/^\/rosbridge/, ''),
+  },
+  '/video_publisher': {
+    target: 'http://localhost:8080',
+    rewrite: (path: string) => path.replace(/^\/video_publisher/, ''),
+  },
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   preview: {
-    strictPort: true
+    strictPort: true,
+    https: httpsOptions,
+    proxy,
   },
   plugins: [
     vue(),
@@ -92,16 +106,6 @@ export default defineConfig({
   },
   server: {
     https: httpsOptions,
-    proxy: {
-      '/rosbridge': {
-        target: 'ws://localhost:9090',
-        ws: true,
-        rewrite: (path) => path.replace(/^\/rosbridge/, ''),
-      },
-      '/video_publisher': {
-        target: 'http://localhost:8080',
-        rewrite: (path) => path.replace(/^\/video_publisher/, ''),
-      },
-    },
+    proxy,
   },
 })

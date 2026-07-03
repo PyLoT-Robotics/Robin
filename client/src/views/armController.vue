@@ -240,12 +240,22 @@ function rotateAccelerationByOrientation(accel: Vector): Vector {
   }
 }
 
+function mapDeviceAxesToController(accel: Vector): Vector {
+  return {
+    x: -accel.y,
+    y: accel.x,
+    z: -accel.z,
+  }
+}
+
 function loop(){
-  const rotated = rotateAccelerationByOrientation({
-    x: _acceleration.x,
-    y: _acceleration.y,
-    z: _acceleration.z,
-  })
+  const rotated = mapDeviceAxesToController(
+    rotateAccelerationByOrientation({
+      x: _acceleration.x,
+      y: _acceleration.y,
+      z: _acceleration.z,
+    }),
+  )
 
   const accelX = rotated.x
   const accelY = rotated.y

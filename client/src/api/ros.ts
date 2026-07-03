@@ -1,38 +1,9 @@
 import * as RosLib from 'roslib'
 import type { Action, Ros, Topic } from 'roslib'
 import { ref } from 'vue'
+import { buildRosWebSocketURL } from './endpoints'
 
-const rosBridgePath = '/rosbridge'
-const videoPublisherPath = '/video_publisher'
-const rosBridgeProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-
-export const defaultConnectionHost = window.location.hostname
-
-export function normalizeConnectionHost(value: string) {
-  const trimmed = value.trim()
-  if (!trimmed) {
-    return ''
-  }
-
-  const hasProtocol = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)
-  const candidate = hasProtocol ? trimmed : `wss://${trimmed}`
-
-  try {
-    return new URL(candidate).hostname
-  } catch {
-    return ''
-  }
-}
-
-export function buildRosWebSocketURL(_host?: string) {
-  return `${rosBridgeProtocol}//${window.location.host}${rosBridgePath}`
-}
-
-export function buildVideoPublisherBaseURL(_host?: string) {
-  return `${window.location.origin}${videoPublisherPath}`
-}
-
-export const defaultRosWebsocketURL = buildRosWebSocketURL()
+export * from './endpoints'
 
 export function createRos() {
   const rosWebsocketURL = buildRosWebSocketURL()

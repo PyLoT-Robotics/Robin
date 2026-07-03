@@ -7,9 +7,9 @@
   >
     <div class="mb-2 flex justify-between gap-3 text-sm">
       <span>{{ title }}</span>
-      <span class="font-mono">{{ pwaCache.percentage.value }}%</span>
+      <span v-if="pwaCache.state.value !== 'downloading'" class="font-mono">{{ pwaCache.percentage.value }}%</span>
     </div>
-    <div class="h-2 overflow-hidden rounded-full bg-zinc-800">
+    <div v-if="pwaCache.state.value !== 'downloading'" class="h-2 overflow-hidden rounded-full bg-zinc-800">
       <div
         class="h-full bg-sky-500 transition-[width] duration-200"
         :style="{ width: `${pwaCache.percentage.value}%` }"
@@ -33,8 +33,9 @@ let hideTimer: ReturnType<typeof setTimeout> | undefined
 
 const title = computed(() => {
   if (pwaCache.state.value === 'error') return 'Offline cache error'
+  if (pwaCache.state.value === 'downloading') return 'Downloading feature'
   if (pwaCache.state.value === 'ready') return 'Robin is ready offline'
-  return 'Saving Robin for faster launches'
+  return 'Downloading minimum UI'
 })
 
 watch(pwaCache.state, (state) => {

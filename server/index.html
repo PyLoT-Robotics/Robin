@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#09090b">
+    <title>Robin Server</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #09090b;
+        color: #f4f4f5;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 15% 20%, rgba(249, 115, 22, 0.18), transparent 32rem),
+          radial-gradient(circle at 85% 80%, rgba(161, 161, 170, 0.12), transparent 28rem),
+          #09090b;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.16;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        background-size: 36px 36px;
+        mask-image: linear-gradient(to bottom, black, transparent 80%);
+      }
+
+      main {
+        position: relative;
+        width: min(92vw, 680px);
+        padding: clamp(2rem, 6vw, 4rem);
+        border: 1px solid #3f3f46;
+        border-radius: 28px;
+        background: rgba(24, 24, 27, 0.82);
+        box-shadow: 0 32px 100px rgba(0, 0, 0, 0.48);
+        backdrop-filter: blur(18px);
+      }
+
+      .eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin: 0 0 1.5rem;
+        color: #a1a1aa;
+        font: 600 0.78rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .pulse {
+        width: 0.65rem;
+        height: 0.65rem;
+        border-radius: 999px;
+        background: #4ade80;
+        box-shadow: 0 0 0 6px rgba(74, 222, 128, 0.1), 0 0 22px rgba(74, 222, 128, 0.6);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2.7rem, 10vw, 5.4rem);
+        line-height: 0.92;
+        letter-spacing: -0.065em;
+      }
+
+      h1 span { color: #f97316; }
+
+      .lead {
+        max-width: 31rem;
+        margin: 1.5rem 0 2rem;
+        color: #a1a1aa;
+        font-size: clamp(1rem, 2.5vw, 1.15rem);
+        line-height: 1.65;
+      }
+
+      .address {
+        margin: -0.8rem 0 2rem;
+        color: #71717a;
+        font: 0.82rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .address strong { color: #d4d4d8; }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+      }
+
+      a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 3rem;
+        padding: 0.8rem 1.15rem;
+        border: 1px solid #52525b;
+        border-radius: 999px;
+        color: #f4f4f5;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+      }
+
+      a:hover { transform: translateY(-2px); border-color: #a1a1aa; }
+      a.primary { border-color: #f97316; background: #f97316; color: #18181b; }
+      a.primary:hover { background: #fb923c; }
+
+      .routes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 2.5rem;
+        color: #71717a;
+        font: 0.73rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .routes span {
+        padding: 0.3rem 0.55rem;
+        border: 1px solid #27272a;
+        border-radius: 999px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow"><span class="pulse"></span> ROS-side services online</p>
+      <h1>Robin <span>server.</span></h1>
+      <p class="lead">
+        This device runs Robin's local robot services. The controller app now lives on the web.
+      </p>
+      <p class="address">Local server IP: <strong id="server-address">this device</strong></p>
+      <div class="actions">
+        <a class="primary" href="https://robin.pylot-robotics.org">Open Robin client&nbsp; ↗</a>
+        <a href="/rootCA.pem" download>Install root CA</a>
+      </div>
+      <div class="routes" aria-label="Available server routes">
+        <span>/rosbridge</span>
+        <span>/video_publisher</span>
+        <span>/rootCA.pem</span>
+      </div>
+    </main>
+    <script>
+      document.querySelector('#server-address').textContent = window.location.hostname
+    </script>
+  </body>
+</html>

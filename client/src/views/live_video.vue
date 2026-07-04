@@ -198,8 +198,15 @@ async function startConnection() {
   if (nowTimer) clearInterval(nowTimer)
   if (inboundStatsTimer) clearInterval(inboundStatsTimer)
   peerConnection.value?.close()
+  const videoPublisherBaseURL = buildVideoPublisherBaseURL()
+  if (!videoPublisherBaseURL) {
+    connectionState.value = 'error'
+    diagnosticDetail.value = 'Configure the Robin server URL in Settings.'
+    return
+  }
+
   const pc = new RTCPeerConnection()
-  const videoPublisherOfferURL = `${buildVideoPublisherBaseURL()}/offer`
+  const videoPublisherOfferURL = `${videoPublisherBaseURL}/offer`
   peerConnection.value = pc
   incomingStream.value = null
   lastFrameUpdatedAt.value = null

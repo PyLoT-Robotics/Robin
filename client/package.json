@@ -1,28 +1,24 @@
 {
-  "name": "robin",
+  "name": "robin-client",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "bun showQRcode.ts && vite --host",
-    "transfer_rootCA": "bun showQRcode.ts rootCA.pem && vite --host",
-    "create_cert": "sh create_cert.sh",
+    "dev": "vite --host 0.0.0.0 --port 5174",
     "generate-pwa-assets": "pwa-assets-generator --config pwa-assets.config.ts",
     "build": "vue-tsc -b && vite build",
-    "preview": "bun showQRcode.ts 4173 && vite preview --host --logLevel silent"
+    "preview": "vite preview --host 0.0.0.0 --port 4174 --strictPort"
   },
   "dependencies": {
     "@iconify/vue": "^5.0.0",
     "@tailwindcss/vite": "^4.2.1",
-    "@types/qrcode": "^1.5.6",
     "chart.js": "^4.5.1",
-    "qrcode": "^1.5.4",
     "roslib": "^2.1.0",
     "tailwindcss": "^4.2.1",
     "three": "^0.180.0",
-    "vercel": "^51.3.0",
     "vite-plugin-pwa": "^1.2.0",
-    "vue": "^3.5.29"
+    "vue": "^3.5.29",
+    "workbox-window": "^7.4.1"
   },
   "devDependencies": {
     "@types/node": "^24.12.0",

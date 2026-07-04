@@ -6,6 +6,14 @@
 
 [PyLoT Robotics](https://pylot.kaijo-physics.club)で制作しているロボットのデバッグ用コントローラーです。
 
+# 構成
+
+- `client/`: Vercel で配信する Vue/Vite クライアントのみ
+- `server/`: ROS 2 側で動かす HTTPS Vite サーバー
+  - `/rosbridge` → `ws://localhost:9090`
+  - `/video_publisher` → `http://localhost:8080`
+  - `/rootCA.pem` とサーバー案内ページ
+
 # セットアップ
 このREADMEを内包しているフォルダで、
 ```bash
@@ -14,11 +22,11 @@ sh gists/install.sh
 を実行すればあとは指示に従えばいいです
 
 # 証明書のインストール
-スマホに証明書をインストールしなければパソコンで起動したclientにアクセスした際にブラウザに警告が表示されます。
+スマホから ROS 側の HTTPS サーバーへ接続するには、ローカル CA のインストールが必要です。
 ```bash
-sh gist/transferRootCA.sh
+sh gists/transferRootCA.sh
 ```
-で表示されたQRコードにアクセスするとrootCA.pemをダウンロードすることができます。
+で表示された QR コードにアクセスすると、サーバーが配信する `rootCA.pem` をダウンロードできます。
 
 ## iPhoneの場合
 https://zenn.dev/takumiabe21/articles/645a38c0c18389 の「○iPhoneのSafariからHTTPS接続する。」以降を参考にインストールしてください。
@@ -26,7 +34,7 @@ https://zenn.dev/takumiabe21/articles/645a38c0c18389 の「○iPhoneのSafariか
 ## Androidの場合
 また今度書きます、、
 
-# 起動する
+# ROS 側を起動する
 ```bash
 #Topicの送受信に必要なRosbrdige_serverの起動
 sh src/robin/gists/start_rosbridge.sh
@@ -38,15 +46,20 @@ colcon build
 source install/setup.bash
 ros2 run robin video_publisher
 
-#プロキシサーバーの起動
-sh src/robin/gists/start_proxy_server.sh
+#Robinサーバーの起動（プロキシ、root CA、案内ページ）
+sh src/robin/gists/start_server.sh
 ```
 
-# (optional)クライアントの起動
+# クライアントを開く
+
+通常は [https://robin.pylot-robotics.org](https://robin.pylot-robotics.org) を開き、Settings で
+ROS 側のローカル IP アドレスを指定します（接続先 port は 5173）。
+
+ローカルでクライアントを開発する場合のみ以下を実行します（port 5174）。
+
 ```bash
 sh src/robin/gists/start_client.sh
 ```
-(2秒以内くらいにQRコードがでれば成功です)
 
 # 特定TopicをLeRobot形式で保存する
 以下で任意のTopicを購読し、LeRobot形式の最小構成で保存できます。

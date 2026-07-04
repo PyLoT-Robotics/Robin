@@ -27,7 +27,6 @@ sh "${ROBIN_REPOSITORY_PATH}/gists/setup.sh"
 #show complete message
 echo "🎉 Installation complete"
 
-#transfer rootCA.pem
-echo "🔐 Transferring rootCA.pem to client"
-echo "(Ctrl+C to close server)"
+# Show the URL for the root CA hosted by the Robin server.
+echo "🔐 Robin server root CA"
 sh "${ROBIN_REPOSITORY_PATH}/gists/transferRootCA.sh"

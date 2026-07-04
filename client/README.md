@@ -1,54 +1,26 @@
-# client
+# Robin client
 
-This template should help get you started developing with Vue 3 in Vite.
+This is the static Vue/Vite controller hosted at
+<https://robin.pylot-robotics.org>. It does not proxy ROS or video traffic and
+does not host the local root CA.
 
-## Recommended IDE Setup
-
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Recommended Browser Setup
-
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+## Local development
 
 ```sh
-npm install
+bun install
+bun run dev
 ```
 
-### Compile and Hot-Reload for Development
+The local client uses port 5174 so it can run beside the ROS-side server on
+port 5173. Select the server's local IP in the app's Settings view, or provide an initial
+value at build time:
 
 ```sh
-npm run dev
+VITE_ROBIN_SERVER_URL=https://192.168.0.10:5173 bun run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+## Vercel
 
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+The repository-level `vercel.json` installs and builds this directory. The
+result is a static `client/dist` deployment. `VITE_ROBIN_SERVER_URL` is
+optional because each browser can save its own robot server URL in Settings.

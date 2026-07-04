@@ -45,25 +45,49 @@
     </div>
 
     <div class="flex flex-col gap-1 font-mono">
-      <p class="px-2 text-lg">Connection Endpoint</p>
-      <div class="bg-zinc-900 text-zinc-200 px-2 py-1 border-y border-border">
-        Fixed to current dev server origin
-      </div>
+      <label for="robin-server-host" class="px-2 text-lg">Robin Server Local IP</label>
+      <form class="flex border-y border-border" @submit.prevent="saveServerHost">
+        <input
+          id="robin-server-host"
+          v-model="serverHostDraft"
+          type="text"
+          inputmode="decimal"
+          class="min-w-0 grow bg-zinc-900 text-zinc-200 px-2 py-1 outline-none"
+          placeholder="192.168.0.10"
+        >
+        <button class="bg-orange-600 px-4 text-zinc-950 hover:bg-orange-500" type="submit">
+          Save
+        </button>
+      </form>
+      <p v-if="serverHostError" class="px-2 text-sm text-red-400">{{ serverHostError }}</p>
+      <p class="px-2 text-sm text-zinc-500">Enter the local IP shown by the Robin server.</p>
       <p class="px-2 text-sm text-zinc-400">
-        WebSocket: {{ rosbridgeURL }}<br>
-        VideoPublisher: {{ videoPublisherURL }}
+        WebSocket: {{ rosbridgeURL || 'Not configured' }}<br>
+        VideoPublisher: {{ videoPublisherURL || 'Not configured' }}
       </p>
+      <a
+        v-if="normalizedServerURL"
+        :href="normalizedServerURL"
+        target="_blank"
+        rel="noreferrer"
+        class="px-2 text-sm text-orange-400 underline"
+      >
+        Open server page / install root CA
+      </a>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import {
   buildRosWebSocketURL,
+  buildRobinServerURL,
   buildVideoPublisherBaseURL,
   createTopic,
+  getRobinServerHost,
+  normalizeConnectionHost,
   type Topic,
 } from '@/api/ros'
 import { useTopicsList } from '@/hooks/useTopicsList'
@@ -72,6 +96,7 @@ import { ros, status } from '@/plugins/ros'
 const cameraTopicStorage = useLocalStorage('CameraTopic')
 const logTopicStorage = useLocalStorage('LogTopic')
 const videoPriorityStorage = useLocalStorage('WebRTCVideoPriority')
+const serverURLStorage = useLocalStorage('RobinServerURL')
 const videoPublisherSubscribeTopicName = '/robin/video_publisher_subscribe_topic'
 
 const { topicsList } = useTopicsList(ros)
@@ -128,8 +153,24 @@ const videoPriorityLabel = computed(() => {
   return 'Balanced'
 })
 
-const rosbridgeURL = buildRosWebSocketURL()
-const videoPublisherURL = buildVideoPublisherBaseURL()
+const serverHostDraft = ref(getRobinServerHost())
+const serverHostError = ref('')
+const normalizedServerHost = computed(() => normalizeConnectionHost(serverHostDraft.value))
+const normalizedServerURL = computed(() => buildRobinServerURL(normalizedServerHost.value))
+const rosbridgeURL = computed(() => buildRosWebSocketURL(normalizedServerURL.value))
+const videoPublisherURL = computed(() => buildVideoPublisherBaseURL(normalizedServerURL.value))
+
+function saveServerHost() {
+  const serverURL = buildRobinServerURL(serverHostDraft.value)
+  if (!serverURL) {
+    serverHostError.value = 'Enter a valid local IP address.'
+    return
+  }
+
+  serverHostError.value = ''
+  serverURLStorage.value = serverURL
+  window.location.reload()
+}
 
 watch(
   [cameraTopic, status],

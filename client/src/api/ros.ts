@@ -6,7 +6,6 @@ import { buildRosWebSocketURL } from './endpoints'
 export * from './endpoints'
 
 export function createRos() {
-  const rosWebsocketURL = buildRosWebSocketURL()
   const ros = new RosLib.Ros()
 
   const status = ref<'connected' | 'closed' | 'error'>('closed')
@@ -21,12 +20,7 @@ export function createRos() {
 
     reconnectTimer = setTimeout(() => {
       reconnectTimer = null
-      try {
-        ros.connect(rosWebsocketURL)
-      } catch (err) {
-        error.value = err instanceof Error ? err.message : String(err)
-        scheduleReconnect()
-      }
+      connect()
     }, reconnectDelayMs)
 
     reconnectDelayMs = Math.min(reconnectDelayMs * 2, 15000)
@@ -54,8 +48,21 @@ export function createRos() {
   })
 
   function connect() {
-    console.log("connecting...")
-    ros.connect(rosWebsocketURL)
+    const rosWebsocketURL = buildRosWebSocketURL()
+    if (!rosWebsocketURL) {
+      status.value = 'error'
+      error.value = 'Configure the Robin server URL in Settings.'
+      return
+    }
+
+    console.log(`Connecting to ${rosWebsocketURL}`)
+    try {
+      ros.connect(rosWebsocketURL)
+    } catch (err) {
+      status.value = 'error'
+      error.value = err instanceof Error ? err.message : String(err)
+      scheduleReconnect()
+    }
   }
 
   connect()

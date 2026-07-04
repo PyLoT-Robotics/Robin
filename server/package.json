@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "bun showQRcode.ts && vite preview --host 0.0.0.0 --port 5173 --strictPort",
     "create_cert": "sh create_cert.sh",
-    "show_root_ca": "bun showQRcode.ts rootCA.pem"
+    "show_root_ca": "bun transferRootCA.ts"
   },
   "dependencies": {
     "@types/qrcode": "^1.5.6",

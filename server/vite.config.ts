@@ -37,7 +37,7 @@ const proxy = {
 }
 
 export default defineConfig(({ command }) => {
-  if (command === 'build') return {}
+  if (command === 'build') return { publicDir: false }
 
   const serverOptions = {
     host: '0.0.0.0',
@@ -51,6 +51,7 @@ export default defineConfig(({ command }) => {
   }
 
   return {
+    publicDir: false,
     server: serverOptions,
     preview: serverOptions,
   }

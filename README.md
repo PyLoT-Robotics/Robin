@@ -35,6 +35,23 @@ https://zenn.dev/takumiabe21/articles/645a38c0c18389 の「○iPhoneのSafariか
 また今度書きます、、
 
 # ROS 側を起動する
+
+Video Publisher、rosbridge_server、Robinサーバーをまとめて起動できます。
+
+```bash
+colcon build --symlink-install
+source install/setup.bash
+ros2 launch robin server.launch.py
+```
+
+通常と異なる場所に `server/` がある場合は、パスを指定してください。
+
+```bash
+ros2 launch robin server.launch.py server_directory:=/path/to/robin/server
+```
+
+以下は各プロセスを個別に起動する場合の手順です。
+
 ```bash
 #Topicの送受信に必要なRosbrdige_serverの起動
 sh src/robin/gists/start_rosbridge.sh

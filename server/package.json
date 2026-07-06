@@ -4,12 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "bun showQRcode.ts && vite --host 0.0.0.0 --port 5173",
+    "dev": "bun src/scripts/showQRCode.ts && vite --host 0.0.0.0 --port 5173",
     "build": "vite build",
-    "preview": "bun showQRcode.ts && vite preview --host 0.0.0.0 --port 5173 --strictPort",
+    "typecheck": "tsc -p tsconfig.json",
+    "preview": "bun src/scripts/showQRCode.ts && vite preview --host 0.0.0.0 --port 5173 --strictPort",
     "create_certificate": "sh create_cert.sh",
     "create_cert": "bun run create_certificate",
-    "show_root_ca": "bun showQRcode.ts rootCA.pem"
+    "show_root_ca": "bun src/scripts/showQRCode.ts rootCA.pem",
+    "transfer_root_ca": "bun src/scripts/transferRootCA.ts"
   },
   "dependencies": {
     "@types/qrcode": "^1.5.6",

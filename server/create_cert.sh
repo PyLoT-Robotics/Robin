@@ -7,7 +7,7 @@ cd "$SERVER_DIR"
 
 mkdir -p certs public
 
-LOCAL_IP=$(bun network.ts --primary)
+LOCAL_IP=$(bun src/scripts/networkInfo.ts --primary)
 
 mkcert -key-file certs/dev-key.pem -cert-file certs/dev-cert.pem localhost 127.0.0.1 ::1 "$LOCAL_IP"
 cp "$(mkcert -CAROOT)/rootCA.pem" public/rootCA.pem

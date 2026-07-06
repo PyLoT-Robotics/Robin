@@ -19,56 +19,17 @@
 <script setup lang="ts">
 import * as THREE from 'three'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-
-type Vector = {
-  x: number
-  y: number
-  z: number
-}
-
-type Orientation = {
-  alpha: number
-  beta: number
-  gamma: number
-  available: boolean
-}
-
-type ThreeQuaternionLike = {
-  setFromEuler: (euler: unknown) => ThreeQuaternionLike
-  setFromAxisAngle: (axis: unknown, angle: number) => ThreeQuaternionLike
-  multiply: (quaternion: ThreeQuaternionLike) => ThreeQuaternionLike
-  clone: () => ThreeQuaternionLike
-  invert: () => ThreeQuaternionLike
-}
-
-type ThreeCameraLike = {
-  aspect: number
-  position: {
-    set: (x: number, y: number, z: number) => void
-  }
-  up: {
-    set: (x: number, y: number, z: number) => void
-  }
-  lookAt: (x: number, y: number, z: number) => void
-  updateProjectionMatrix: () => void
-}
-
-type ThreeRendererLike = {
-  domElement: HTMLCanvasElement
-  setPixelRatio: (ratio: number) => void
-  setSize: (width: number, height: number) => void
-  render: (scene: unknown, camera: unknown) => void
-  dispose: () => void
-}
-
-type ThreeSceneLike = {
-  background: unknown
-  add: (object: unknown) => void
-}
+import type { DeviceOrientation, Vector3 } from '@/models/motion'
+import type {
+  ThreeCameraLike,
+  ThreeQuaternionLike,
+  ThreeRendererLike,
+  ThreeSceneLike,
+} from '@/models/three'
 
 const { position, orientation } = defineProps<{
-  position: Vector
-  orientation: Orientation
+  position: Vector3
+  orientation: DeviceOrientation
 }>()
 
 const container = ref<HTMLDivElement | null>(null)
@@ -100,7 +61,7 @@ function renderScene(): void {
   renderer.render(scene, camera)
 }
 
-function controllerToScene(value: Vector): THREE.Vector3 {
+function controllerToScene(value: Vector3): THREE.Vector3 {
   // Controller X is scene-up, Y is scene-left, and Z is scene-forward.
   return new THREE.Vector3(value.y * SCALE, value.z * SCALE, value.x * SCALE)
 }

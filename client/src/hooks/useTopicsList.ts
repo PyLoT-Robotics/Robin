@@ -1,7 +1,8 @@
-import { createService, type Ros } from '@/api/ros'
+import { createService } from '@/infra/ros/rosClient'
 import { computed, ref } from 'vue'
+import { ros } from './useRosConnection'
 
-export function useTopicsList(ros: Ros) {
+export function useTopicsList() {
   const topicsService = createService(ros, '/rosapi/topics', 'rosapi/Topics')
 
   const _topicsList = ref<string[]>([])

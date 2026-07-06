@@ -6,6 +6,18 @@ The ROS-side Vite server provides only the local robot-facing services:
 - `https://<robot>:5173/video_publisher` → `http://localhost:8080`
 - a landing page linking to <https://robin.pylot-robotics.org>
 
+## Architecture
+
+- `src/models/`: server status, certificate, and landing-page types.
+- `src/infra/`: network discovery, certificate access, QR generation, and ROS
+  proxy configuration.
+- `src/hooks/`: Vite middleware and plugin composition.
+- `src/components/`: landing-page behavior.
+- `src/scripts/`: CLI entry points used by setup and package scripts.
+
+`vite.config.ts` is only the composition root; HTTP and OS-specific behavior
+stays outside it.
+
 ## Setup
 
 From the repository root on Ubuntu, with ROS 2 sourced:

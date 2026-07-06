@@ -9,5 +9,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { status, error, connect } from '@/plugins/ros'
+import { useRosConnection } from '@/hooks/useRosConnection'
+
+const { status, error, connect } = useRosConnection()
 </script>

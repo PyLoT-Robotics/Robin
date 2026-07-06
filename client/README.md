@@ -4,6 +4,21 @@ This is the static Vue/Vite controller hosted at
 <https://robin.pylot-robotics.org>. It does not proxy ROS or video traffic and
 does not host the local root CA.
 
+## Architecture
+
+The client follows a one-way dependency structure:
+
+- `models/`: application and domain types, including ROS, motion, map, storage,
+  and PWA state.
+- `infra/`: browser storage, service-worker registration, ROSLIB factories,
+  endpoint construction, and topic transport adapters.
+- `hooks/`: Vue state and application use cases. Components consume this layer
+  instead of accessing infrastructure directly.
+- `components/`: presentation and view composition.
+
+Dependencies flow from components to hooks, then to infrastructure and models.
+Infrastructure never imports components.
+
 ## Local development
 
 ```sh

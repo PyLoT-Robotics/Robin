@@ -26,7 +26,9 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { pwaCache } from '@/pwa'
+import { usePwaCache } from '@/hooks/usePwaCache'
+
+const pwaCache = usePwaCache()
 
 const visible = ref(pwaCache.state.value !== 'ready')
 let hideTimer: ReturnType<typeof setTimeout> | undefined

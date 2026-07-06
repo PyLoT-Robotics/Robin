@@ -9,17 +9,12 @@
 <script setup lang="ts">
 import { Chart, type ChartDataset } from 'chart.js/auto'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-
-type Vector = {
-  x: number
-  y: number
-  z: number
-}
+import type { Vector3 } from '@/models/motion'
 
 const {
   acceleration
 } = defineProps<{
-  acceleration: Vector
+  acceleration: Vector3
 }>()
 
 const accelChartCanvas = ref<HTMLCanvasElement | null>(null)

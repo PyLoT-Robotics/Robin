@@ -1,128 +1,186 @@
-<img
-  alt="Robin Logo"
-  src="client/public/OGP.png"/>
+![](./client/public/OGP.png)
 
 # Robin
 
-[PyLoT Robotics](https://pylot.kaijo-physics.club)で制作しているロボットのデバッグ用コントローラーです。
+Robin は、同一 LAN 上のブラウザから ROS 2 ロボットを操作・監視するための Web クライアントです。ROS トピックの送受信、カメラ映像の WebRTC 配信、地図表示、Nav2 ゴール送信、アーム操作をまとめています。
 
-# 構成
+## 構成
 
-- `client/`: Vercel で配信する Vue/Vite クライアントのみ
-- `server/`: ROS 2 側で動かす HTTPS Vite サーバー
-  - `/rosbridge` → `ws://localhost:9090`
-  - `/video_publisher` → `http://localhost:8080`
-  - `/rootCA.pem` とサーバー案内ページ
+```mermaid
+flowchart LR
+    Client["Robin client<br>ブラウザ / PWA"]
+    Server["HTTPS server<br>:5173"]
+    Bridge["rosbridge<br>127.0.0.1:9090"]
+    Video["video_publisher<br>:8080"]
+    ROS["ROS 2 graph"]
 
-# セットアップ
+    Client -->|"WSS /rosbridge"| Server
+    Client -->|"HTTPS /video_publisher"| Server
+    Server --> Bridge
+    Server --> Video
+    Bridge --> ROS
+    Video --> ROS
+```
 
-Ubuntu 上で ROS 2 の環境を source した後、このリポジトリのルートで次を実行します。
+| ディレクトリ | 役割 |
+| --- | --- |
+| `robin/` | ROS 2 ノード。カメラ映像配信と LeRobot 形式のトピック記録 |
+| `launch/` | rosbridge、映像配信、HTTPS サーバーの一括起動 |
+| `server/` | ロボット上で動く HTTPS リバースプロキシと証明書案内ページ |
+| `client/` | Vue 製の操作画面。サーバーとは別に配信する |
+
+## 通常起動
+
+### 1. 前提
+
+- Ubuntu 上に ROS 2 と `colcon` がインストールされていること
+- このリポジトリが colcon ワークスペースの `src/` 以下にあること
+- ロボットが、操作端末と同じ LAN に接続されていること
+- ROS 2 の環境を source 済みであること
+
+以降では、ワークスペースを `~/robin_ws`、リポジトリを `~/robin_ws/src/robin` とします。
+
+### 2. 初回セットアップ
 
 ```bash
+source /opt/ros/<distro>/setup.bash
+cd ~/robin_ws/src/robin
 ./setup.sh
 ```
 
-このコマンドは不足している Bun、mkcert、rosbridge のインストールを確認し、サーバー依存関係、HTTPS 証明書、配信用ページを準備します。最後に一時サーバーと QR コードを表示するので、スマートフォンへ root CA をインストールしてください。`N` を選ぶ間はサーバーを維持し、`Y` または Ctrl-C で終了します。
+`setup.sh` は必要に応じて確認を挟みながら、次を行います。
 
-iPhone では root CA プロファイルをインストールした後、`設定 → 一般 → 情報 → 証明書信頼設定` で mkcert の証明書を「完全に信頼」してください。サーバー案内ページにも同じ手順とブラウザーの信頼状態が表示されます。
+- Bun、mkcert、rosbridge と ROS 依存パッケージの確認・導入
+- `server/` の依存パッケージ導入
+- ロボットの LAN IP に対する HTTPS 証明書の生成
+- サーバー用ランディングページのビルド
+- 起動時に使う `~/.config/robin/runtime.conf` の生成
+- 一時サーバーの起動と、操作端末へのルート CA 導入案内
 
-`setup.sh` は ROS ワークスペースの build は行いません。ワークスペースのルートで次を実行します。
+表示された URL または QR コードを操作端末で開き、`rootCA.pem` をインストールして信頼を有効にしてから、ターミナルの確認に答えてください。証明書の導入は通常、端末ごとに初回だけ必要です。
+
+### 3. ROS パッケージをビルド
 
 ```bash
-colcon build --packages-select robin
+cd ~/robin_ws
+colcon build --symlink-install --packages-select robin
 source install/setup.bash
 ```
 
-# ROS 側を起動する
-
-Video Publisher、rosbridge_server、Robinサーバーをまとめて起動できます。
+新しいターミナルで起動する場合は、ROS 2 本体とワークスペースの両方を source してください。
 
 ```bash
-colcon build --symlink-install
-source install/setup.bash
-ros2 launch robin server.launch.py
+source /opt/ros/<distro>/setup.bash
+source ~/robin_ws/install/setup.bash
 ```
 
-通常と異なる場所に `server/` がある場合は、パスを指定してください。
-
-```bash
-ros2 launch robin server.launch.py server_directory:=/path/to/robin/server
-```
-
-以下は各プロセスを個別に起動する場合の手順です。
+### 4. 起動
 
 ```bash
 ros2 launch robin robin.launch.py
 ```
 
-終了するときは Ctrl-C を押してください。3 つのプロセスがまとめて停止します。リポジトリを移動した場合や IP アドレスが変わった場合は、もう一度 `./setup.sh` を実行してください。
+このコマンドは以下をまとめて起動します。
 
-# クライアントを開く
+- rosbridge WebSocket: `127.0.0.1:9090`
+- カメラ映像の WebRTC シグナリング: `0.0.0.0:8080`
+- HTTPS サーバー: `0.0.0.0:5173`
 
-通常は [https://robin.pylot-robotics.org](https://robin.pylot-robotics.org) を開き、Settings で
-Robin サーバー案内ページに大きく表示されたローカル IP アドレスを指定します（接続先 port は 5173）。
+終了は `Ctrl+C` です。映像配信ノードまたは HTTPS サーバーが異常終了した場合も、launch 全体が終了します。
 
-ローカルでクライアントを開発する場合のみ以下を実行します（port 5174）。
+### 5. 操作端末から接続
+
+1. 操作端末をロボットと同じ LAN に接続します。
+2. `https://<ロボットのIP>:5173` を開き、サーバーがオンラインであることを確認します。
+3. [Robin client](https://robin.pylot-robotics.org) を開きます。
+4. Settings の **Robin Server Local IP** にロボットの IP を入力して保存します。
+5. Settings の **Camera Topic** と **Log Topic** を使用する ROS トピックに合わせます。
+
+クライアントは保存した IP から、`wss://<IP>:5173/rosbridge` と `https://<IP>:5173/video_publisher` を組み立てます。ブラウザから `9090` と `8080` へ直接接続する必要はありません。
+
+## 主な ROS インターフェース
+
+| 名前 | 方向 | 型・用途 |
+| --- | --- | --- |
+| `/joy` | publish | `sensor_msgs/msg/Joy`。コントローラー表示中に 30 Hz で送信 |
+| `/robin/video_publisher_subscribe_topic` | publish | `std_msgs/msg/String`。映像元の Image トピックを切り替える |
+| 選択した Camera Topic | subscribe | `sensor_msgs/msg/Image`。WebRTC 映像の入力 |
+| 選択した Log Topic | subscribe | 型を rosapi から解決して画面に表示 |
+| `/map`, `/scan`, `/tf`, `/tf_static` | subscribe | 地図、LiDAR、座標変換の表示 |
+| `/initialpose` | publish | 地図上で指定した初期姿勢 |
+| `/navigate_to_pose` | action | Nav2 ゴール。既定型は `nav2_msgs/action/NavigateToPose` |
+| `/luna_arm_custom_ik_pose_commander/target_delta` | publish | アーム操作の移動量 |
+
+地図画面は複数の一般的な costmap／global path トピック名を順に探索します。利用可能な機能は、接続先ロボットが公開しているトピックと action に依存します。
+
+## 開発
+
+サーバー側を通常構成で動かしたまま、クライアントだけを開発起動できます。
 
 ```bash
-sh src/robin/gists/start_client.sh
+cd ~/robin_ws/src/robin/client
+bun install --frozen-lockfile
+bun run dev
 ```
 
-# Bluetooth について
+`http://localhost:5174` を開き、Settings でロボットの IP を設定します。固定の接続先をビルド時に埋め込む場合は `VITE_ROBIN_SERVER_URL=https://<IP>:5173` を設定できます。
 
-iPhone の PWA からは Web Bluetooth を利用できないため、このバージョンでは Bluetooth topic transport を追加していません。`/joy`、ログ、map、video を含む既存の通信は、引き続き HTTPS/WebSocket/WebRTC 経由です。
+サーバーを単独で開発起動する場合は、証明書生成後に以下を実行します。rosbridge と `video_publisher` は別途起動が必要です。
 
-# 特定TopicをLeRobot形式で保存する
-以下で任意のTopicを購読し、LeRobot形式の最小構成で保存できます。
 ```bash
-source install/setup.bash
+cd ~/robin_ws/src/robin/server
+bun install --frozen-lockfile
+bun run create_certificate
+bun run dev
+```
+
+コンポーネント固有の詳細は [client/README.md](client/README.md) と [server/README.md](server/README.md) を参照してください。
+
+## ビルドと確認
+
+```bash
+# ROS 2 package
+cd ~/robin_ws
+colcon test --packages-select robin
+colcon test-result --verbose
+
+# Client
+cd ~/robin_ws/src/robin/client
+bun run build
+
+# Server
+cd ~/robin_ws/src/robin/server
+bun run typecheck
+bun run build
+```
+
+## LeRobot トピックレコーダー
+
+任意の ROS 2 トピックを Parquet に記録するノードも含まれています。
+
+```bash
 ros2 run robin lerobot_recorder --ros-args \
   -p topic_name:=/joint_states \
   -p output_dir:=./lerobot_dataset \
-  -p task_name:=teleop \
+  -p task_name:=joint_capture \
   -p episode_index:=0
 ```
 
-設定受信用Topic（既定: `/lerobot_recorder/config`）を変える場合は以下です。
-
-```bash
-ros2 run robin lerobot_recorder --ros-args \
-  -p control_topic_name:=/my/lerobot/config
-```
-
-Topic型が自動検出できない場合は、`message_type` を明示してください。
-
-```bash
-ros2 run robin lerobot_recorder --ros-args \
-  -p topic_name:=/my_topic \
-  -p message_type:=std_msgs/msg/String
-```
-
-実行中に、保存対象Topic一覧を `std_msgs/String` で送ると購読対象を切り替えできます。
-
-JSON配列を送る例:
+既定の制御トピック `/lerobot_recorder/config` に `std_msgs/msg/String` の JSON を送ると、実行中に対象トピックや出力先を変更できます。
 
 ```bash
 ros2 topic pub --once /lerobot_recorder/config std_msgs/msg/String \
-  "{data: '[\"/joint_states\",\"/imu/data\"]'}"
+  "{data: '{\"topics\":[\"/joint_states\",\"/joy\"],\"episode_index\":1}'}"
 ```
 
-カンマ区切り文字列でも送れます:
+出力先には `meta/` と `data/chunk-000/episode_XXXXXX.parquet` が作成されます。ノード終了時または episode 切り替え時に episode メタデータが確定します。
 
-```bash
-ros2 topic pub --once /lerobot_recorder/config std_msgs/msg/String \
-  "{data: '/joint_states,/imu/data'}"
-```
+## トラブルシューティング
 
-保存先を実行中に変える場合は、JSONオブジェクトで `output_dir` を渡します。
-
-```bash
-ros2 topic pub --once /lerobot_recorder/config std_msgs/msg/String \
-  "{data: '{\"topics\":[\"/joint_states\"],\"output_dir\":\"./lerobot_dataset/session2\"}'}"
-```
-
-出力先には以下が生成されます。
-- `meta/info.json`
-- `meta/tasks.jsonl`
-- `meta/episodes.jsonl`
-- `data/chunk-000/episode_000000.parquet`
+- **`Robin server configuration is missing`**: リポジトリ直下で `./setup.sh` を再実行してください。
+- **証明書エラーになる**: `https://<IP>:5173` を直接開き、ルート CA の導入と完全な信頼を確認してください。
+- **ロボットの IP が変わった**: 証明書はセットアップ時の IP に対して生成されます。`./setup.sh` を再実行してください。
+- **IP を自動検出できない**: `ROBIN_SERVER_HOST=<IPv4>` を設定して `./setup.sh` を実行できます。
+- **`5173` が使用中**: 既存の Robin サーバーや別の Vite プロセスを停止してください。サーバーは strict port で起動します。
+- **ROS に接続できない**: `ros2 node list` で ROS graph を確認し、`ros2 launch` のターミナルに rosbridge の起動エラーがないか確認してください。
+- **映像が出ない**: Settings の Camera Topic が存在し、型が `sensor_msgs/msg/Image` で、画像が継続的に publish されているか確認してください。

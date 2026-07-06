@@ -1,70 +1,81 @@
 # Robin server
 
-The ROS-side Vite server provides only the local robot-facing services:
+ロボット上で動作する HTTPS サーバーです。ルート CA の配布と状態表示に加え、ブラウザから ROS と WebRTC へ安全に接続するためのリバースプロキシを提供します。
 
-- `wss://<robot>:5173/rosbridge` → `ws://localhost:9090`
-- `https://<robot>:5173/video_publisher` → `http://localhost:8080`
-- a landing page linking to <https://robin.pylot-robotics.org>
+通常は単独起動せず、リポジトリ直下の `./setup.sh` と `ros2 launch robin robin.launch.py` を使用します。全体の起動手順は [ルート README](../README.md) を参照してください。
 
-## Architecture
+## 提供する経路
 
-- `src/models/`: server status, certificate, and landing-page types.
-- `src/infra/`: network discovery, certificate access, QR generation, and ROS
-  proxy configuration.
-- `src/hooks/`: Vite middleware and plugin composition.
-- `src/components/`: landing-page behavior.
-- `src/scripts/`: CLI entry points used by setup and package scripts.
+| 経路 | 転送先・内容 |
+| --- | --- |
+| `/` | ロボット IP、接続状態、証明書導入手順を表示 |
+| `/rosbridge` | `ws://localhost:9090` へ WebSocket 転送 |
+| `/video_publisher` | `http://localhost:8080` へ HTTP 転送 |
+| `/rootCA.pem` | mkcert のルート CA |
+| `/api/root-ca-qr` | ルート CA URL の QR コード |
+| `/api/status` | ロボットの IP 一覧と証明書の状態を JSON で返す |
 
-`vite.config.ts` is only the composition root; HTTP and OS-specific behavior
-stays outside it.
+サーバー自身は HTTPS の `0.0.0.0:5173` で待ち受けます。外部公開を前提としたサーバーではなく、ロボットと操作端末が同じ信頼できる LAN にいる構成を想定しています。
 
-## Setup
+## 初回セットアップ
 
-From the repository root on Ubuntu, with ROS 2 sourced:
+リポジトリ直下から実行してください。
 
-```sh
+```bash
+source /opt/ros/<distro>/setup.bash
 ./setup.sh
 ```
 
-The script installs server dependencies, creates the certificate, builds the
-landing page, and temporarily runs the server while the phone installs the
-root CA. It also stores the server and Bun paths used by the ROS launch file.
+セットアップは `server/` の依存導入、証明書生成、本番ビルドを行い、Bun とサーバーディレクトリの絶対パスを `~/.config/robin/runtime.conf` に保存します。
 
-The equivalent server-only commands are:
+## 単独での開発起動
 
-```sh
+```bash
+cd server
 bun install --frozen-lockfile
 bun run create_certificate
-bun run build
-bun run preview
+bun run dev
 ```
 
-## Run with ROS
+`bun run create_certificate` は現在の LAN IP、`localhost`、`127.0.0.1`、`::1` を含む証明書を `certs/` に作り、mkcert の `rootCA.pem` を `public/` にコピーします。事前に mkcert のインストールと `mkcert -install` が必要です。
 
-After building and sourcing the ROS workspace, start rosbridge, the video
-publisher, and this HTTPS server together:
+このサーバーだけを起動しても ROS と映像には接続できません。別ターミナルで rosbridge と映像配信ノードを起動してください。
 
-```sh
-ros2 launch robin robin.launch.py
+```bash
+ros2 launch rosbridge_server rosbridge_websocket_launch.xml port:=9090 address:=127.0.0.1
+ros2 run robin video_publisher
 ```
 
-The landing page exposes `/api/status` for the primary IP, other local IPv4
-addresses, server health, and root CA availability. Its browser trust indicator
-uses the secure-context signal; browsers do not expose their certificate store
-to JavaScript.
+## コマンド
 
-To transfer the root CA to a new device, run:
+| コマンド | 内容 |
+| --- | --- |
+| `bun run dev` | QR コードを表示し、HTTPS 開発サーバーを `0.0.0.0:5173` で起動 |
+| `bun run build` | ランディングページを `dist/` にビルド |
+| `bun run preview` | `dist/` を HTTPS の `0.0.0.0:5173` で配信 |
+| `bun run typecheck` | server の TypeScript 型確認 |
+| `bun run create_certificate` | LAN IP 用の証明書とルート CA を生成 |
+| `bun run show_root_ca` | ルート CA の URL と QR コードを表示 |
+| `bun run transfer_root_ca` | 一度ダウンロードされるまで一時 HTTP 配信 |
 
-```sh
-bun run show_root_ca
+## 環境変数
+
+| 変数 | 既定値 | 用途 |
+| --- | --- | --- |
+| `ROBIN_SERVER_HOST` | 自動検出した LAN IPv4 | 表示・証明書生成に使うロボット IP の上書き |
+| `ROSBRIDGE_URL` | `ws://localhost:9090` | rosbridge の転送先 |
+| `VIDEO_PUBLISHER_URL` | `http://localhost:8080` | WebRTC シグナリングの転送先 |
+| `TLS_CERT_PATH` | `server/certs/dev-cert.pem` | HTTPS 証明書ファイル |
+| `TLS_KEY_PATH` | `server/certs/dev-key.pem` | HTTPS 秘密鍵ファイル |
+| `ROOT_CA_PATH` | `server/public/rootCA.pem` | 一時 CA 配信で使うファイル |
+| `ROOT_CA_PORT` | `5174` | 一時 CA 配信の HTTP ポート |
+
+## 状態確認
+
+自己署名証明書をまだ信頼していない端末では、確認時だけ `curl -k` が必要です。
+
+```bash
+curl -k https://127.0.0.1:5173/api/status
 ```
 
-This starts a temporary HTTP server at
-`http://<robot>:5174/rootCA.pem`, prints a QR code, and stops after the
-certificate is downloaded. The root CA is not exposed by the normal HTTPS
-server or included in production builds.
-
-The upstream services can be changed with `ROSBRIDGE_URL` and
-`VIDEO_PUBLISHER_URL` environment variables. Certificate paths can be
-overridden with `TLS_CERT_PATH` and `TLS_KEY_PATH`. Root CA transfers can be
-configured with `ROOT_CA_PATH` and `ROOT_CA_PORT`.
+`status: "ok"`、`primaryIp`、`addresses`、`rootCAAvailable` が返ればサーバー部分は起動しています。

@@ -35,7 +35,21 @@ source install/setup.bash
 
 # ROS 側を起動する
 
-rosbridge、Video Publisher、Robin HTTPS サーバーは 1 つの launch file で起動します。
+Video Publisher、rosbridge_server、Robinサーバーをまとめて起動できます。
+
+```bash
+colcon build --symlink-install
+source install/setup.bash
+ros2 launch robin server.launch.py
+```
+
+通常と異なる場所に `server/` がある場合は、パスを指定してください。
+
+```bash
+ros2 launch robin server.launch.py server_directory:=/path/to/robin/server
+```
+
+以下は各プロセスを個別に起動する場合の手順です。
 
 ```bash
 ros2 launch robin robin.launch.py

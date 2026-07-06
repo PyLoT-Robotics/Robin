@@ -99,7 +99,7 @@ const robinStatusPlugin: Plugin = {
 }
 
 export default defineConfig(({ command }) => {
-  if (command === 'build') return {}
+  if (command === 'build') return { publicDir: false }
 
   const serverOptions = {
     host: '0.0.0.0',
@@ -113,7 +113,6 @@ export default defineConfig(({ command }) => {
   }
 
   return {
-    plugins: [robinStatusPlugin],
     server: serverOptions,
     preview: serverOptions,
   }

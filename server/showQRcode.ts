@@ -5,7 +5,7 @@ const requestedPath = process.argv[2] ?? ''
 
 const localIP = getPrimaryIPv4()
 
-const url = new URL(requestedPath, `https://${localIP}:5173/`).toString()
+const url = new URL(requestedPath, `https://${localHost}:5173/`).toString()
 
 QRCode.toString(url, (error, qrcode) => {
   if (error) throw error

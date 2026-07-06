@@ -1,4 +1,5 @@
 robin/**/__pycache__
+**/__pycache__/
 .qodo
 .DS_Store
 build
@@ -6,3 +7,4 @@ install
 log
 certs
 .pnpm-store/
+.vercel

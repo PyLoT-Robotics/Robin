@@ -7,7 +7,8 @@
     "dev": "bun showQRcode.ts && vite --host 0.0.0.0 --port 5173",
     "build": "vite build",
     "preview": "bun showQRcode.ts && vite preview --host 0.0.0.0 --port 5173 --strictPort",
-    "create_cert": "sh create_cert.sh",
+    "create_certificate": "sh create_cert.sh",
+    "create_cert": "bun run create_certificate",
     "show_root_ca": "bun showQRcode.ts rootCA.pem"
   },
   "dependencies": {

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#09090b">
-    <title>Robin Server</title>
+    <title>Robin Server Setup</title>
     <style>
       :root {
         color-scheme: dark;
@@ -15,15 +15,14 @@
 
       * { box-sizing: border-box; }
 
+      html { scroll-behavior: smooth; }
+
       body {
         min-height: 100vh;
         margin: 0;
-        display: grid;
-        place-items: center;
-        overflow: hidden;
         background:
-          radial-gradient(circle at 15% 20%, rgba(249, 115, 22, 0.18), transparent 32rem),
-          radial-gradient(circle at 85% 80%, rgba(161, 161, 170, 0.12), transparent 28rem),
+          radial-gradient(circle at 12% 8%, rgba(249, 115, 22, 0.2), transparent 30rem),
+          radial-gradient(circle at 88% 42%, rgba(59, 130, 246, 0.1), transparent 34rem),
           #09090b;
       }
 
@@ -31,33 +30,45 @@
         content: "";
         position: fixed;
         inset: 0;
+        z-index: -1;
         pointer-events: none;
-        opacity: 0.16;
+        opacity: 0.12;
         background-image:
           linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
           linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
         background-size: 36px 36px;
-        mask-image: linear-gradient(to bottom, black, transparent 80%);
+        mask-image: linear-gradient(to bottom, black, transparent 85%);
       }
 
       main {
-        position: relative;
-        width: min(92vw, 680px);
-        padding: clamp(2rem, 6vw, 4rem);
+        width: min(94vw, 920px);
+        margin: 0 auto;
+        padding: clamp(1.25rem, 5vw, 4rem) 0 5rem;
+      }
+
+      .hero, .panel {
         border: 1px solid #3f3f46;
-        border-radius: 28px;
-        background: rgba(24, 24, 27, 0.82);
-        box-shadow: 0 32px 100px rgba(0, 0, 0, 0.48);
+        background: rgba(24, 24, 27, 0.86);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
         backdrop-filter: blur(18px);
       }
 
-      .eyebrow {
+      .hero {
+        padding: clamp(1.4rem, 5vw, 3.5rem);
+        border-radius: 28px;
+      }
+
+      .eyebrow, .status-row, .actions, .address-list {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
-        margin: 0 0 1.5rem;
+        flex-wrap: wrap;
+      }
+
+      .eyebrow {
+        gap: 0.65rem;
+        margin: 0 0 1.4rem;
         color: #a1a1aa;
-        font: 600 0.78rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+        font: 700 0.76rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
         letter-spacing: 0.14em;
         text-transform: uppercase;
       }
@@ -70,38 +81,63 @@
         box-shadow: 0 0 0 6px rgba(74, 222, 128, 0.1), 0 0 22px rgba(74, 222, 128, 0.6);
       }
 
+      h1, h2, p { margin-top: 0; }
+
       h1 {
-        margin: 0;
-        font-size: clamp(2.7rem, 10vw, 5.4rem);
-        line-height: 0.92;
+        margin-bottom: 0.8rem;
+        font-size: clamp(2.6rem, 10vw, 5.8rem);
+        line-height: 0.94;
         letter-spacing: -0.065em;
       }
 
       h1 span { color: #f97316; }
 
-      .lead {
-        max-width: 31rem;
-        margin: 1.5rem 0 2rem;
+      .intro {
+        max-width: 42rem;
         color: #a1a1aa;
-        font-size: clamp(1rem, 2.5vw, 1.15rem);
         line-height: 1.65;
       }
 
-      .address {
-        margin: -0.8rem 0 2rem;
-        color: #71717a;
-        font: 0.82rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+      .ip-label {
+        margin: 2.3rem 0 0.4rem;
+        color: #a1a1aa;
+        font: 700 0.72rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
       }
 
-      .address strong { color: #d4d4d8; }
-
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.8rem;
+      .ip-button {
+        display: block;
+        width: 100%;
+        padding: 0;
+        border: 0;
+        color: #fb923c;
+        background: transparent;
+        text-align: left;
+        font: 800 clamp(2.7rem, 12vw, 6.8rem)/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: -0.08em;
+        overflow-wrap: anywhere;
+        cursor: pointer;
       }
 
-      a {
+      .copy-hint { color: #71717a; font-size: 0.8rem; }
+
+      .status-row { gap: 0.65rem; margin: 2rem 0; }
+
+      .badge {
+        padding: 0.55rem 0.75rem;
+        border: 1px solid #52525b;
+        border-radius: 999px;
+        color: #d4d4d8;
+        font: 700 0.76rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .badge.good { border-color: #166534; color: #86efac; background: rgba(22, 101, 52, 0.2); }
+      .badge.warn { border-color: #9a3412; color: #fdba74; background: rgba(154, 52, 18, 0.2); }
+
+      .actions { gap: 0.8rem; }
+
+      a, button.action {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -110,51 +146,189 @@
         border: 1px solid #52525b;
         border-radius: 999px;
         color: #f4f4f5;
-        font-weight: 700;
+        background: transparent;
+        font: 700 0.95rem/1 system-ui, sans-serif;
         text-decoration: none;
-        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+        cursor: pointer;
       }
 
-      a:hover { transform: translateY(-2px); border-color: #a1a1aa; }
+      a:hover, button.action:hover { border-color: #a1a1aa; transform: translateY(-1px); }
       a.primary { border-color: #f97316; background: #f97316; color: #18181b; }
-      a.primary:hover { background: #fb923c; }
 
-      .routes {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 2.5rem;
-        color: #71717a;
-        font: 0.73rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+      .panels {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
       }
 
-      .routes span {
-        padding: 0.3rem 0.55rem;
-        border: 1px solid #27272a;
-        border-radius: 999px;
+      .panel { padding: clamp(1.25rem, 4vw, 2rem); border-radius: 22px; }
+      .panel.wide { grid-column: 1 / -1; }
+      .panel h2 { margin-bottom: 1rem; font-size: 1.35rem; }
+      .panel p, .panel li { color: #a1a1aa; line-height: 1.65; }
+      .panel ol { margin: 0; padding-left: 1.35rem; }
+      .panel li + li { margin-top: 0.7rem; }
+      .panel strong { color: #e4e4e7; }
+
+      details { border-top: 1px solid #3f3f46; padding-top: 1rem; }
+      summary { cursor: pointer; font-weight: 700; }
+
+      .address-list { gap: 0.45rem; margin-top: 1rem; }
+      .address-list code { padding: 0.3rem 0.5rem; border-radius: 8px; background: #09090b; color: #a1a1aa; }
+
+      dialog {
+        width: min(90vw, 390px);
+        padding: 1.5rem;
+        border: 1px solid #52525b;
+        border-radius: 22px;
+        color: #f4f4f5;
+        background: #18181b;
+        text-align: center;
+      }
+
+      dialog::backdrop { background: rgba(0, 0, 0, 0.76); }
+      dialog img { width: min(70vw, 280px); padding: 0.7rem; border-radius: 14px; background: white; }
+
+      .small { color: #71717a; font-size: 0.82rem; line-height: 1.55; }
+
+      @media (max-width: 680px) {
+        .panels { grid-template-columns: 1fr; }
+        .panel.wide { grid-column: auto; }
+        .actions > * { width: 100%; }
       }
     </style>
   </head>
   <body>
     <main>
-      <p class="eyebrow"><span class="pulse"></span> ROS-side services online</p>
-      <h1>Robin <span>server.</span></h1>
-      <p class="lead">
-        This device runs Robin's local robot services. The controller app now lives on the web.
-      </p>
-      <p class="address">Local server IP: <strong id="server-address">this device</strong></p>
-      <div class="actions">
-        <a class="primary" href="https://robin.pylot-robotics.org">Open Robin client&nbsp; ↗</a>
-        <a href="/rootCA.pem" download>Install root CA</a>
-      </div>
-      <div class="routes" aria-label="Available server routes">
-        <span>/rosbridge</span>
-        <span>/video_publisher</span>
-        <span>/rootCA.pem</span>
+      <section class="hero">
+        <p class="eyebrow"><span class="pulse"></span> Robin ROS services online</p>
+        <h1>Connect to <span>Robin.</span></h1>
+        <p class="intro">Use this robot address in the Robin client. Tap it to copy, then complete the certificate steps below once per phone.</p>
+
+        <p class="ip-label">Robot IP address</p>
+        <button id="copy-ip" class="ip-button" type="button" aria-label="Copy robot IP address">
+          <span id="server-address">Loading…</span>
+        </button>
+        <p id="copy-hint" class="copy-hint">Tap the address to copy it</p>
+
+        <div class="status-row" aria-live="polite">
+          <span id="server-status" class="badge">Checking server…</span>
+          <span id="ca-status" class="badge">Checking root CA…</span>
+          <span id="trust-status" class="badge">Checking browser trust…</span>
+        </div>
+
+        <div class="actions">
+          <a class="primary" href="/rootCA.pem" download>Download root CA</a>
+          <button id="show-qr" class="action" type="button">Show root CA QR</button>
+          <button id="recheck" class="action" type="button">Recheck trust</button>
+        </div>
+      </section>
+
+      <div class="panels">
+        <section class="panel">
+          <h2>1. Install on iPhone</h2>
+          <ol>
+            <li>Download <strong>rootCA.pem</strong> above and allow the configuration profile download.</li>
+            <li>Open <strong>Settings → Profile Downloaded</strong>, or <strong>General → VPN &amp; Device Management</strong>, then install the profile.</li>
+            <li>Open <strong>General → About → Certificate Trust Settings</strong> and enable full trust for the mkcert root certificate.</li>
+            <li>Return here and tap <strong>Recheck trust</strong>. Reopen the page if Safari kept the previous connection.</li>
+          </ol>
+        </section>
+
+        <section class="panel">
+          <h2>2. Connect Robin</h2>
+          <ol>
+            <li>Copy the large robot IP shown above.</li>
+            <li>Open the hosted Robin client.</li>
+            <li>In <strong>Settings → Robin Server Local IP</strong>, paste the IP and save.</li>
+            <li>Robin will use secure ROS and video routes on port <strong>5173</strong>.</li>
+          </ol>
+          <p><a class="primary" href="https://robin.pylot-robotics.org">Open Robin client&nbsp; ↗</a></p>
+        </section>
+
+        <section class="panel wide">
+          <h2>Connection details</h2>
+          <p>The trust check reports whether this page is running in a secure browser context. Web pages cannot inspect the phone's certificate store or prove which particular root CA was installed.</p>
+          <div id="address-list" class="address-list" aria-label="Other robot addresses"></div>
+          <details>
+            <summary>Android certificate setup</summary>
+            <p>Download the root CA, then use Android Settings to install it as a CA certificate. The exact menu differs by manufacturer; it is commonly under Security, Encryption &amp; credentials, or Install a certificate.</p>
+          </details>
+          <p class="small">Routes: /rosbridge · /video_publisher · /rootCA.pem · /api/status</p>
+        </section>
       </div>
     </main>
+
+    <dialog id="qr-dialog">
+      <h2>Scan on the phone</h2>
+      <p><img src="/api/root-ca-qr" alt="QR code for the Robin root CA download"></p>
+      <button id="close-qr" class="action" type="button">Close</button>
+    </dialog>
+
     <script>
-      document.querySelector('#server-address').textContent = window.location.hostname
+      const addressElement = document.querySelector('#server-address')
+      const addressList = document.querySelector('#address-list')
+      const serverStatus = document.querySelector('#server-status')
+      const caStatus = document.querySelector('#ca-status')
+      const trustStatus = document.querySelector('#trust-status')
+      const copyHint = document.querySelector('#copy-hint')
+      const qrDialog = document.querySelector('#qr-dialog')
+      let primaryIp = window.location.hostname
+
+      function setBadge(element, text, state) {
+        element.textContent = text
+        element.className = `badge ${state}`
+      }
+
+      function updateTrustStatus() {
+        const trusted = window.location.protocol === 'https:' && window.isSecureContext
+        setBadge(
+          trustStatus,
+          trusted ? 'HTTPS trusted by this browser' : 'HTTPS is not trusted yet',
+          trusted ? 'good' : 'warn',
+        )
+      }
+
+      async function refreshStatus() {
+        updateTrustStatus()
+        try {
+          const response = await fetch(`/api/status?time=${Date.now()}`, { cache: 'no-store' })
+          if (!response.ok) throw new Error(`HTTP ${response.status}`)
+          const status = await response.json()
+          primaryIp = status.primaryIp
+          addressElement.textContent = primaryIp
+          setBadge(serverStatus, 'Server reachable', 'good')
+          setBadge(caStatus, status.rootCAAvailable ? 'Root CA ready' : 'Root CA missing', status.rootCAAvailable ? 'good' : 'warn')
+          addressList.replaceChildren(...status.addresses.map((address) => {
+            const code = document.createElement('code')
+            code.textContent = address
+            return code
+          }))
+        } catch (error) {
+          addressElement.textContent = primaryIp
+          setBadge(serverStatus, 'Status check failed', 'warn')
+          setBadge(caStatus, 'Root CA status unknown', 'warn')
+          console.error(error)
+        }
+      }
+
+      document.querySelector('#copy-ip').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(primaryIp)
+          copyHint.textContent = 'Copied! Paste this address into Robin Settings.'
+        } catch {
+          copyHint.textContent = `Copy this address: ${primaryIp}`
+        }
+      })
+
+      document.querySelector('#show-qr').addEventListener('click', () => qrDialog.showModal())
+      document.querySelector('#close-qr').addEventListener('click', () => qrDialog.close())
+      document.querySelector('#recheck').addEventListener('click', refreshStatus)
+      qrDialog.addEventListener('click', (event) => {
+        if (event.target === qrDialog) qrDialog.close()
+      })
+
+      refreshStatus()
     </script>
   </body>
 </html>

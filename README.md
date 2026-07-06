@@ -15,51 +15,48 @@
   - `/rootCA.pem` とサーバー案内ページ
 
 # セットアップ
-このREADMEを内包しているフォルダで、
+
+Ubuntu 上で ROS 2 の環境を source した後、このリポジトリのルートで次を実行します。
+
 ```bash
-sh gists/install.sh
+./setup.sh
 ```
-を実行すればあとは指示に従えばいいです
 
-# 証明書のインストール
-スマホから ROS 側の HTTPS サーバーへ接続するには、ローカル CA のインストールが必要です。
+このコマンドは不足している Bun、mkcert、rosbridge のインストールを確認し、サーバー依存関係、HTTPS 証明書、配信用ページを準備します。最後に一時サーバーと QR コードを表示するので、スマートフォンへ root CA をインストールしてください。`N` を選ぶ間はサーバーを維持し、`Y` または Ctrl-C で終了します。
+
+iPhone では root CA プロファイルをインストールした後、`設定 → 一般 → 情報 → 証明書信頼設定` で mkcert の証明書を「完全に信頼」してください。サーバー案内ページにも同じ手順とブラウザーの信頼状態が表示されます。
+
+`setup.sh` は ROS ワークスペースの build は行いません。ワークスペースのルートで次を実行します。
+
 ```bash
-sh gists/transferRootCA.sh
+colcon build --packages-select robin
+source install/setup.bash
 ```
-で表示された QR コードにアクセスすると、サーバーが配信する `rootCA.pem` をダウンロードできます。
-
-## iPhoneの場合
-https://zenn.dev/takumiabe21/articles/645a38c0c18389 の「○iPhoneのSafariからHTTPS接続する。」以降を参考にインストールしてください。
-
-## Androidの場合
-また今度書きます、、
 
 # ROS 側を起動する
+
+rosbridge、Video Publisher、Robin HTTPS サーバーは 1 つの launch file で起動します。
+
 ```bash
-#Topicの送受信に必要なRosbrdige_serverの起動
-sh src/robin/gists/start_rosbridge.sh
-
-#<このREADMEを内包しているフォルダ>/../.. (すなわち、installやlog, srcを含んでいるフォルダ)で以下のコマンドを実行
-
-#Video Publisherの起動
-colcon build
-source install/setup.bash
-ros2 run robin video_publisher
-
-#Robinサーバーの起動（プロキシ、root CA、案内ページ）
-sh src/robin/gists/start_server.sh
+ros2 launch robin robin.launch.py
 ```
+
+終了するときは Ctrl-C を押してください。3 つのプロセスがまとめて停止します。リポジトリを移動した場合や IP アドレスが変わった場合は、もう一度 `./setup.sh` を実行してください。
 
 # クライアントを開く
 
 通常は [https://robin.pylot-robotics.org](https://robin.pylot-robotics.org) を開き、Settings で
-ROS 側のローカル IP アドレスを指定します（接続先 port は 5173）。
+Robin サーバー案内ページに大きく表示されたローカル IP アドレスを指定します（接続先 port は 5173）。
 
 ローカルでクライアントを開発する場合のみ以下を実行します（port 5174）。
 
 ```bash
 sh src/robin/gists/start_client.sh
 ```
+
+# Bluetooth について
+
+iPhone の PWA からは Web Bluetooth を利用できないため、このバージョンでは Bluetooth topic transport を追加していません。`/joy`、ログ、map、video を含む既存の通信は、引き続き HTTPS/WebSocket/WebRTC 経由です。
 
 # 特定TopicをLeRobot形式で保存する
 以下で任意のTopicを購読し、LeRobot形式の最小構成で保存できます。

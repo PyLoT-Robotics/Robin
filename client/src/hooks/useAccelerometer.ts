@@ -1,11 +1,15 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import type { DeviceOrientation, MotionPermissionState, Vector3 } from '@/models/motion'
 
 export function useAccelerometer(){
-    const acceleration = reactive({ x: 0, y: 0, z: 0 })
-    const orientation = reactive({ alpha: 0, beta: 0, gamma: 0, available: false })
-    const permissionState = ref<'unknown' | 'required' | 'granted' | 'denied' | 'unsupported'>(
-      'unknown',
-    )
+    const acceleration = reactive<Vector3>({ x: 0, y: 0, z: 0 })
+    const orientation = reactive<DeviceOrientation>({
+      alpha: 0,
+      beta: 0,
+      gamma: 0,
+      available: false,
+    })
+    const permissionState = ref<MotionPermissionState>('unknown')
     let isListening = false
     
     const statusText = computed(() => {

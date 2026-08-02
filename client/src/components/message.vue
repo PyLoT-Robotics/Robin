@@ -8,63 +8,24 @@
   </div>
 </template>
 <script setup lang="ts">
-import { createTopic, type Topic } from '@/api/ros'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
-import { ros } from '@/plugins/ros'
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { useRosTopicSubscription } from '@/hooks/useRosTopicSubscription'
+import { ref, watch } from 'vue'
 
 const latestLine = ref('Waiting for messages...')
 const activeTopic = useLocalStorage('LogTopic')
 
-let subscriber: Topic | null = null
-
-function stopSubscribe() {
-  if (!subscriber) {
-    return
-  }
-  subscriber.unsubscribe()
-  subscriber = null
-}
-
-function resolveTopicType(topicName: string) {
-  return new Promise<string>((resolve) => {
-    ros.getTopicType(topicName, (topicType) => {
-      resolve(topicType && topicType.length > 0 ? topicType : 'std_msgs/String')
-    })
-  })
-}
-
-async function startSubscribe(topicName: string) {
-  stopSubscribe()
-
-  if (!topicName) {
-    latestLine.value = 'No topic selected'
-    return
-  }
-
-  latestLine.value = 'Waiting for messages...'
-
-  try {
-    const topicType = await resolveTopicType(topicName)
-    subscriber = createTopic(ros, topicName, topicType)
-
-    subscriber.subscribe((message) => {
-      latestLine.value = `[${new Date().toLocaleTimeString()}] ${topicName} ${JSON.stringify(message)}`
-    })
-  } catch (error) {
-    latestLine.value = `Failed to subscribe: ${String(error)}`
-  }
-}
+const { error } = useRosTopicSubscription(activeTopic, (message, topicName) => {
+  latestLine.value = `[${new Date().toLocaleTimeString()}] ${topicName} ${JSON.stringify(message)}`
+})
 
 watch(
   activeTopic,
-  (newTopic) => {
-    startSubscribe(newTopic)
-  },
+  (newTopic) => { latestLine.value = newTopic ? 'Waiting for messages...' : 'No topic selected' },
   { immediate: true },
 )
 
-onBeforeUnmount(() => {
-  stopSubscribe()
+watch(error, (subscriptionError) => {
+  if (subscriptionError) latestLine.value = subscriptionError
 })
 </script>

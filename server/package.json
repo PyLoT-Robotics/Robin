@@ -1,0 +1,25 @@
+{
+  "name": "robin-server",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun src/scripts/showQRCode.ts && vite --host 0.0.0.0 --port 5173",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json",
+    "preview": "bun src/scripts/showQRCode.ts && vite preview --host 0.0.0.0 --port 5173 --strictPort",
+    "create_certificate": "sh create_cert.sh",
+    "create_cert": "bun run create_certificate",
+    "show_root_ca": "bun src/scripts/showQRCode.ts rootCA.pem",
+    "transfer_root_ca": "bun src/scripts/transferRootCA.ts"
+  },
+  "dependencies": {
+    "@types/qrcode": "^1.5.6",
+    "qrcode": "^1.5.4",
+    "vite": "^8.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.0",
+    "typescript": "~5.9.3"
+  }
+}

@@ -96,7 +96,7 @@ self.addEventListener('fetch', (event) => {
         const fallback = await cache.match(new URL('index.html', self.registration.scope).href)
         if (fallback) return fallback
         return new Response(
-          '<!doctype html><title>Robin is offline</title><h1>Robin is offline</h1><p>Reconnect to the client server, then reload this page.</p>',
+          '<!doctype html><title>Robin is offline</title><h1>Robin is offline</h1><p>Reconnect to the internet, then reload this page.</p>',
           {
             status: 503,
             headers: { 'Content-Type': 'text/html; charset=utf-8' },

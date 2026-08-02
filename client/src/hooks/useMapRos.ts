@@ -1,7 +1,9 @@
-import { createAction, createTopic, type Action, type Ros, type Topic } from '@/api/ros'
+import { createAction, createTopic } from '@/infra/ros/rosClient'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { quaternionToYaw, yawToQuaternion } from '@/utils/map/math'
-import { normalizeFrameId, resolveTransform, setTransform } from '@/utils/map/transformGraph'
+import { quaternionToYaw, yawToQuaternion } from '@/models/map/math'
+import { normalizeFrameId, resolveTransform, setTransform } from '@/models/map/transformGraph'
+import type { Action, Topic } from '@/models/ros'
+import { ros } from './useRosConnection'
 import type {
   CostmapData,
   GlobalPathData,
@@ -10,14 +12,10 @@ import type {
   OccupancyGridMessage,
   PathMessage,
   Pose2D,
+  PoseCommandMode,
   TfMessage,
-} from '@/utils/map/types'
-
-type UseMapRosOptions = {
-  onMapSizeChanged?: () => void
-}
-
-type PoseCommandMode = 'initial_pose' | 'nav2_goal'
+  UseMapRosOptions,
+} from '@/models/map/types'
 
 const mapTopic = '/map'
 const scanTopic = '/scan'
@@ -52,7 +50,7 @@ function parseActionTypeFromFeedbackType(feedbackType: string) {
   return feedbackType.slice(0, -suffix.length)
 }
 
-export function useMapRos(ros: Ros, options: UseMapRosOptions = {}) {
+export function useMapRos(options: UseMapRosOptions = {}) {
   const currentMapFrame = ref<MapFrameData | null>(null)
   const latestScan = ref<LaserScanData | null>(null)
   const latestGlobalCostmap = ref<CostmapData | null>(null)

@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch, type StyleValue } from 'vue'
-import type { MapFrameData } from '@/utils/map/types'
+import type { MapFrameData } from '@/models/map/types'
 
 const props = defineProps<{
   layerStyle: StyleValue

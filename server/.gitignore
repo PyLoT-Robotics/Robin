@@ -1,0 +1,4 @@
+certs/
+dist/
+node_modules/
+public/rootCA.pem

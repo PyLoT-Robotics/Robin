@@ -1,5 +1,6 @@
 ROBIN_REPOSITORY_PATH="$(cd "$(dirname "$0")/.." && pwd)"
 
-cd "${ROBIN_REPOSITORY_PATH}/client"
+cd "${ROBIN_REPOSITORY_PATH}/server"
+mkdir -p public
 cp "$(mkcert -CAROOT)/rootCA.pem" ./public/rootCA.pem
-bun run transfer_rootCA
+bun run show_root_ca

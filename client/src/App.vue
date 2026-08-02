@@ -94,10 +94,10 @@
 </template>
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
-import type { Control } from './model/control'
+import type { Control } from '@/models/control'
 import ViewTabButton from './components/viewTabButton.vue'
 
-import { views } from './views'
+import { views } from '@/components/views'
 import PwaCacheProgress from './components/PwaCacheProgress.vue'
 
 const ControllerLeft = defineAsyncComponent(() => import('@/components/controller/controller_left.vue'))
@@ -192,12 +192,9 @@ watch(
   (shown) => {
     const generation = ++controllerLoadGeneration
     if (shown) {
-      void Promise.all([
-        import('@/plugins/ros'),
-        import('./utils/createControllerTopicInterval'),
-      ]).then(([{ ros }, { createControllerTopicInterval }]) => {
+      void import('@/hooks/useControllerPublisher').then(({ startControllerPublisher }) => {
         if (controllerStatus.shown && generation === controllerLoadGeneration) {
-          joyInterval = createControllerTopicInterval(ros, joyTopicTPS, control)
+          joyInterval = startControllerPublisher(joyTopicTPS, control)
         }
       })
     } else {

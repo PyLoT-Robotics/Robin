@@ -4,8 +4,8 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { mapPixelToViewportPoint, mapWorldToPixel } from '@/utils/map/coordinates'
-import type { Pose2D, ScreenPoint } from '@/utils/map/types'
+import { mapPixelToViewportPoint, mapWorldToPixel } from '@/models/map/coordinates'
+import type { Pose2D, ScreenPoint } from '@/models/map/types'
 
 const props = defineProps<{
   mapWidth: number

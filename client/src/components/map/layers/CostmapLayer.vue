@@ -8,9 +8,9 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch, type StyleValue } from 'vue'
-import { mapWorldToPixel, type MapGeometry } from '@/utils/map/coordinates'
-import { resolveTransform } from '@/utils/map/transformGraph'
-import type { CostmapData, Pose2D } from '@/utils/map/types'
+import { mapWorldToPixel, type MapGeometry } from '@/models/map/coordinates'
+import { resolveTransform } from '@/models/map/transformGraph'
+import type { CostmapData, Pose2D } from '@/models/map/types'
 
 const props = defineProps<{
   layerStyle: StyleValue

@@ -15,6 +15,7 @@ const LiveVideo = asyncView('live video', () => import('./LiveVideoView.vue'))
 const Log = asyncView('logs', () => import('./LogView.vue'))
 const Map = asyncView('map', () => import('./MapView.vue'))
 const Settings = asyncView('settings', () => import('./SettingsView.vue'))
+const StagPose = asyncView('STag pose', () => import('./StagPoseView.vue'))
 
 export const views = {
   live_video: {
@@ -35,6 +36,11 @@ export const views = {
   armController: {
     icon: 'streamline-ultimate:factory-industrial-robot-arm-1-bold',
     component: ArmController,
+    usesRos: true,
+  },
+  stagPose: {
+    icon: 'bi:camera',
+    component: StagPose,
     usesRos: true,
   },
   settings: {

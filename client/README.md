@@ -50,6 +50,7 @@ ROS 接続は切断後に 1 秒から最大 15 秒までの指数バックオフ
 - **Map**: map、scan、TF、costmap、global path を表示し、初期姿勢と Nav2 ゴールを送信
 - **Controller**: `/joy` へ 30 Hz で入力を送信。横画面で使用可能
 - **Arm controller**: `/luna_arm_custom_ik_pose_commander/target_delta` へ操作量を送信
+- **STag Pose**: スマホ内で HD21 マーカーの位置・方向を推定し、相対位置と絶対姿勢を送信。マーカー PNG も生成
 - **Settings**: Camera Topic、Log Topic、映像品質、Robin サーバー IP を保存
 
 ## 本番ビルド

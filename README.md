@@ -110,6 +110,15 @@ ros2 launch robin robin.launch.py
 | `/initialpose` | publish | 地図上で指定した初期姿勢 |
 | `/navigate_to_pose` | action | Nav2 ゴール。既定型は `nav2_msgs/action/NavigateToPose` |
 | `/luna_arm_custom_ik_pose_commander/target_delta` | publish | アーム操作の移動量 |
+| `/robin/stag/camera_pose` | publish | スマホ内で推定したカメラの絶対姿勢 |
+
+## スマホカメラの STag 姿勢推定
+
+**STag Pose** 画面は、映像をサーバーへ送らず端末内だけで HD21 STag を検出します。Marker ID、実物の一辺サイズ、スマホカメラの水平画角を設定すると、マーカー座標系におけるカメラの位置・方向を表示します。
+
+Publish を有効にした時点を原点として、移動量をアーム操作と同じ `/luna_arm_custom_ik_pose_commander/target_delta` に `geometry_msgs/Vector3` で、絶対姿勢を `/robin/stag/camera_pose` に `geometry_msgs/Pose` で送信します。画面内の generator から、選択中の HD21 マーカーを 1000 × 1000 px の PNG としてスマホへ保存できます。
+
+検出・生成処理は [ManfredStoiber/stag](https://github.com/ManfredStoiber/stag) の 48-bit HD21 辞書、サンプリング配置、回転デコード、生成ジオメトリを TypeScript に移植した `client/src/lib/stag` に分離しています。距離精度は入力したマーカーサイズと水平画角に依存するため、実機ではカメラ画角を調整してください。
 
 地図画面は複数の一般的な costmap／global path トピック名を順に探索します。利用可能な機能は、接続先ロボットが公開しているトピックと action に依存します。
 
